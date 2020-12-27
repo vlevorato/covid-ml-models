@@ -16,7 +16,7 @@ task_start_import = DummyOperator(task_id='Start_source_data_import',
                                   dag=dag)
 
 input_owid_data_unit = DataInputFileUnit(data_paths['source_data_owid'])
-output_owid_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + '/owid_data.csv', index=False)
+output_owid_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + 'owid_data.csv', index=False)
 task_owid_import = DataOperator(operation_function=dummy_function,
                                 input_unit=input_owid_data_unit,
                                 output_unit=output_owid_data_unit,
@@ -24,7 +24,7 @@ task_owid_import = DataOperator(operation_function=dummy_function,
                                 dag=dag)
 
 input_datagov_data_unit = DataInputFileUnit(data_paths['source_data_gov'])
-output_datagov_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + '/datagov_data.csv', index=False)
+output_datagov_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + 'datagov_data.csv', index=False)
 task_datagov_import = DataOperator(operation_function=dummy_function,
                                    input_unit=input_datagov_data_unit,
                                    output_unit=output_datagov_data_unit,
