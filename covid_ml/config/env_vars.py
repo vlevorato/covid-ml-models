@@ -1,3 +1,4 @@
+from airflow.models import Variable
 import os
 
 """
@@ -14,3 +15,7 @@ env_list = [
 
 for env_var in env_list:
     config_variables[env_var] = os.environ.get(env_var)
+
+if len(config_variables) == 0:
+    for env_var in env_list:
+        config_variables[env_var] = Variable.get(env_var)
