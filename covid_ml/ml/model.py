@@ -19,7 +19,7 @@ def generate_model_filename(model_type, target):
 
 
 def train(dataframe, model_type='rf', model_path=None, target=None, features=None):
-    X = dataframe.dropna(subset=features)
+    X = dataframe.dropna(subset=features + [target])
 
     model = create_model(model_type=model_type)
     model.fit(X[features], X[target])
@@ -29,8 +29,10 @@ def train(dataframe, model_type='rf', model_path=None, target=None, features=Non
 
 
 def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None):
-    X_to_predict = dataframe.fillna(method='ffill') \
-        .fillna(method='bfill')[pd.isnull(dataframe[target])]
+    dataframe[features] = dataframe[features].fillna(method='ffill') \
+        .fillna(method='bfill')
+
+    X_to_predict = dataframe[dataframe[pd.isnull(dataframe[target])]]
 
     now_date = datetime.now().date()
     X_to_predict = X_to_predict[X_to_predict[date_col] > str(now_date)]
