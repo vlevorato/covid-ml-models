@@ -22,8 +22,8 @@ def create_features(dataframe, date_col='date', predict_period_days=15, cols_to_
                     agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
     dataframe = dataframe.sort_values(date_col)
 
-    dataframe['total_cas_confirmes-1'] = dataframe['total_cas_confirmes'].shift(1)
-    dataframe['new_cases_2'] = dataframe['total_cas_confirmes'] - dataframe['total_cas_confirmes-1']
+    dataframe['total_cas_confirmes_1'] = dataframe['total_cas_confirmes'].shift(1)
+    dataframe['new_cases_2'] = dataframe['total_cas_confirmes'] - dataframe['total_cas_confirmes_1']
 
     dataframe['prop_cases_vs_tests'] = dataframe['new_cases_2'] / dataframe['new_tests'].shift(1)
     dataframe['new_patients_gueris'] = dataframe['total_patients_gueris'] - \
