@@ -18,7 +18,11 @@ task_prepare_data_done = DummyOperator(task_id='Prepare_data_done',
 
 data_files_to_prepare = ['owid_data', 'datagov_data']
 
+task_start = DummyOperator(task_id="Start", dag=dag)
+
 task_group_prepare_data = TaskGroup("Prepare_data", dag=dag)
+
+task_start.set_downstream(task_group_prepare_data)
 
 for data_file in data_files_to_prepare:
     input_data_file_unit = DataInputFileUnit(data_paths['raw_data_path'] + data_file + '.csv')
