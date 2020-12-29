@@ -42,6 +42,6 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     y_pred = model.predict(X_to_predict[features])
     y_pred_col = 'y_pred_{}_{}'.format(target, model_type)
 
-    dataframe[y_pred_col] = y_pred
+    X_to_predict[y_pred_col] = y_pred
 
-    return dataframe[[date_col, y_pred_col]]
+    return X_to_predict[[date_col, y_pred_col]]
