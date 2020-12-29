@@ -5,16 +5,14 @@ from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, DataInputMultiFileUnit
 
 from covid_ml.config.commons import dag_args, data_paths
-from covid_ml.ml.feature_engineering import prepare_data, merge_data
+from covid_ml.ml.feature_engineering import prepare_data, merge_data, create_features
+from covid_ml.ml.features import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows
 
 dag = DAG(dag_id='covidml_data_science',
           default_args=dag_args,
           description='Data Science workflow for train-predict Covid insights',
           schedule_interval='10 0 * * *',  # every day at 00:10 am
           catchup=False)
-
-task_prepare_data_done = DummyOperator(task_id='Prepare_data_done',
-                                       dag=dag)
 
 data_files_to_prepare = ['owid_data', 'datagov_data']
 
@@ -31,8 +29,6 @@ for data_file in data_files_to_prepare:
                                      task_group=task_group_prepare_data,
                                      dag=dag)
 
-task_group_prepare_data.set_downstream(task_prepare_data_done)
-
 input_data_multi_files_unit = DataInputMultiFileUnit(
     [data_paths['intermediate_data_path'] + data_file + '.parquet' for data_file in data_files_to_prepare])
 output_merge_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + 'X_merged.parquet',
@@ -44,4 +40,21 @@ task_merge_data = DataOperator(operation_function=merge_data,
                                task_id='Merge_data',
                                dag=dag)
 
-task_prepare_data_done.set_downstream(task_merge_data)
+task_group_prepare_data.set_downstream(task_merge_data)
+
+input_data_merged_unit = DataInputFileUnit(data_paths['intermediate_data_path'] + 'X_merged.parquet',
+                                           pandas_read_function_name='read_parquet')
+output_features_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + 'X_features.parquet',
+                                          pandas_write_function_name='to_parquet')
+
+task_fe = DataOperator(operation_function=create_features,
+                       params={'cols_to_shift': cols_to_shift,
+                               'agg_ops': agg_ops,
+                               'rolling_windows': rolling_windows,
+                               'shift_rolling_windows': shift_rolling_windows},
+                       input_unit=input_data_merged_unit,
+                       output_unit=output_features_unit,
+                       task_id='Feature_engineering',
+                       dag=dag)
+
+task_merge_data.set_downstream(task_fe)
