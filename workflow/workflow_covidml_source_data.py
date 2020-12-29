@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.dummy import DummyOperator
 from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit
 

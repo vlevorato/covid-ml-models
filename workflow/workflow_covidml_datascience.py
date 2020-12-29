@@ -1,5 +1,6 @@
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.dummy import DummyOperator
+from airflow.utils.task_group import TaskGroup
 from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, DataInputMultiFileUnit
 
@@ -17,6 +18,8 @@ task_prepare_data_done = DummyOperator(task_id='Prepare_data_done',
 
 data_files_to_prepare = ['owid_data', 'datagov_data']
 
+task_group_prepare_data = TaskGroup("Prepare_data", dag=dag)
+
 for data_file in data_files_to_prepare:
     input_data_file_unit = DataInputFileUnit(data_paths['raw_data_path'] + data_file + '.csv')
     output_data_file_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + data_file + '.parquet',
@@ -27,7 +30,9 @@ for data_file in data_files_to_prepare:
                                      task_id='Prepare_{}'.format(data_file),
                                      dag=dag)
 
-    task_prepare_data.set_downstream(task_prepare_data_done)
+    task_group_prepare_data.add(task_prepare_data)
+
+task_group_prepare_data.set_downstream(task_prepare_data_done)
 
 input_data_multi_files_unit = DataInputMultiFileUnit(
     [data_paths['intermediate_data_path'] + data_file + '.parquet' for data_file in data_files_to_prepare])
