@@ -10,8 +10,8 @@ config_variables = dict()
 env_list = [
     'COVIDML_PROJECT_PATH',
     'COVIDML_DATA_PATH',
-    'COVIDML_MODEL_PATH'
-    'COVIDML_GCP_KEY_PATH'
+    'COVIDML_MODEL_PATH',
+    'COVIDML_GCP_KEY_PATH',
     'COVIDML_BQ_DATASET'
 ]
 
