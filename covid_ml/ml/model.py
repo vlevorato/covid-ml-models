@@ -11,7 +11,8 @@ def create_model(model_type='rf'):
         return RandomForestRegressor(n_estimators=200,
                                      min_samples_leaf=2,
                                      max_depth=15,
-                                     max_features=0.8)
+                                     max_features=0.8,
+                                     n_jobs=1)
 
 
 def generate_model_filename(model_type, target):
@@ -32,7 +33,7 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
 
-    X_to_predict = dataframe[dataframe[pd.isnull(dataframe[target])]]
+    X_to_predict = dataframe[pd.isnull(dataframe[target])]
 
     now_date = datetime.now().date()
     X_to_predict = X_to_predict[X_to_predict[date_col] > str(now_date)]
