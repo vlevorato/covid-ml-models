@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.task_group import TaskGroup
 from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, DataInputMultiFileUnit
@@ -108,3 +109,9 @@ for target in targets:
                                     dag=dag)
 
         task_train.set_downstream(task_predict)
+
+task_launch_export_predictions_dag = TriggerDagRunOperator(task_id='Trigger_export_predictions_dag',
+                                                           trigger_dag_id='covidml_export_data_to_bq',
+                                                           dag=dag)
+
+task_models.set_downstream(task_launch_export_predictions_dag)

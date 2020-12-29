@@ -38,7 +38,8 @@ for target in targets:
                                                      path_json_key=path_json_key,
                                                      drop_table=False)
         task_export_predictions_data = DataOperator(operation_function=export_predictions,
-                                                    params={},
+                                                    params={'model_type': model_type,
+                                                            'target': target},
                                                     input_unit=input_predictions_unit,
                                                     output_unit=output_pred_bq_unit,
                                                     task_id='Export_predictions_{}_{}'.format(model_type, target),
