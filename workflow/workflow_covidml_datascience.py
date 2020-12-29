@@ -32,9 +32,10 @@ for data_file in data_files_to_prepare:
                                      input_unit=input_data_file_unit,
                                      output_unit=output_data_file_unit,
                                      task_id='Prepare_{}'.format(data_file),
+                                     task_group=task_group_prepare_data,
                                      dag=dag)
 
-    task_group_prepare_data.add(task_prepare_data)
+    #task_group_prepare_data.add(task_prepare_data)
 
 task_group_prepare_data.set_downstream(task_prepare_data_done)
 
