@@ -1,5 +1,4 @@
 from airflow import DAG
-from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, DataInputMultiFileUnit
@@ -37,7 +36,8 @@ for data_file in data_files_to_prepare:
                                      dag=dag)
 
 input_data_multi_files_unit = DataInputMultiFileUnit(
-    [data_paths['intermediate_data_path'] + data_file + '.parquet' for data_file in data_files_to_prepare])
+    [data_paths['intermediate_data_path'] + data_file + '.parquet' for data_file in data_files_to_prepare],
+    pandas_read_function_name='read_parquet')
 output_merge_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + 'X_merged.parquet',
                                        pandas_write_function_name='to_parquet')
 
