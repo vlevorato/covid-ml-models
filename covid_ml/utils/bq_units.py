@@ -29,11 +29,14 @@ class DataInputBigQueryUnit(DataInputUnit):
 
 
 class DataOutputBigQueryUnit(DataOutputUnit):
-    def __init__(self, table_id, drop_table=True):
+    def __init__(self, table_id, path_json_key=None, drop_table=True):
         self.table_id = table_id
+        self.path_json_key = path_json_key
         self.drop_table = drop_table
 
     def write_data(self, dataframe):
+        if self.path_json_key is not None:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.path_json_key
         if len(dataframe) > 0:
             str_cols = []
             for col in dataframe.columns:
