@@ -5,14 +5,21 @@ from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, DataInputMultiFileUnit
 
 from covid_ml.config.commons import dag_args, data_paths
+from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.feature_engineering import prepare_data, merge_data, create_features
-from covid_ml.ml.features import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows
+from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep, \
+    targets, model_types
+from covid_ml.ml.model import train, predict
 
 dag = DAG(dag_id='covidml_data_science',
           default_args=dag_args,
           description='Data Science workflow for train-predict Covid insights',
           schedule_interval='10 0 * * *',  # every day at 00:10 am
           catchup=False)
+
+"""
+Data prep
+"""
 
 data_files_to_prepare = ['owid_data', 'datagov_data']
 
@@ -47,6 +54,10 @@ input_data_merged_unit = DataInputFileUnit(data_paths['intermediate_data_path'] 
 output_features_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + 'X_features.parquet',
                                           pandas_write_function_name='to_parquet')
 
+"""
+Feature Engineering
+"""
+
 task_fe = DataOperator(operation_function=create_features,
                        params={'cols_to_shift': cols_to_shift,
                                'agg_ops': agg_ops,
@@ -58,3 +69,40 @@ task_fe = DataOperator(operation_function=create_features,
                        dag=dag)
 
 task_merge_data.set_downstream(task_fe)
+
+"""
+Train/Predict
+"""
+
+task_models = TaskGroup("Train_predict", dag=dag)
+task_fe.set_downstream(task_models)
+
+for target in targets:
+    for model_type in model_types:
+        input_data_final_unit = DataInputFileUnit(data_paths['intermediate_data_path'] + 'X_features.parquet',
+                                                  pandas_read_function_name='read_parquet')
+        task_train = DataOperator(operation_function=train,
+                                  params={'model_type': model_type,
+                                          'model_path': config_variables['COVIDML_MODEL_PATH'],
+                                          'target': target,
+                                          'features': cols_to_keep},
+                                  input_unit=input_data_final_unit,
+                                  task_group=task_models,
+                                  task_id='Train_model_{}'.format(target),
+                                  dag=dag)
+
+        output_predictions_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] +
+                                                     'X_predict_{}_{}.parquet'.format(model_type, target),
+                                                     pandas_write_function_name='to_parquet')
+        task_predict = DataOperator(operation_function=predict,
+                                    params={'model_type': model_type,
+                                            'model_path': config_variables['COVIDML_MODEL_PATH'],
+                                            'target': target,
+                                            'features': cols_to_keep},
+                                    input_unit=input_data_final_unit,
+                                    output_unit=output_predictions_unit,
+                                    task_group=task_models,
+                                    task_id='Predict_model_{}'.format(target),
+                                    dag=dag)
+
+        task_train.set_downstream(task_predict)

@@ -17,3 +17,6 @@ for col in cols_to_shift:
         for rolling_window in rolling_windows:
             for shift_rolling_window in shift_rolling_windows:
                 cols_to_keep.append('{}_{}_{}_{}'.format(agg_op, rolling_window, col, shift_rolling_window))
+
+targets = ['new_cases_2']
+model_types = ['rf']
