@@ -15,6 +15,7 @@ dag_args = {
 data_paths = {
     'raw_data_path': config_variables['COVIDML_DATA_PATH'] + 'raw_data/',
     'source_data_owid': "https://covid.ourworldindata.org/data/owid-covid-data.csv",
-    'source_data_gov': "https://www.data.gouv.fr/en/datasets/r/d3a98a30-893f-47f7-96c5-2f4bcaaa0d71"
+    'source_data_gov': "https://www.data.gouv.fr/en/datasets/r/d3a98a30-893f-47f7-96c5-2f4bcaaa0d71",
+    'intermediate_data_path': config_variables['COVIDML_DATA_PATH'] + 'intermediate_data/',
 }
 
