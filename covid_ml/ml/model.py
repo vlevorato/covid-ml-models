@@ -29,7 +29,8 @@ def train(dataframe, model_type='rf', model_path=None, target=None, features=Non
     write_object_file(model_path, model)
 
 
-def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None):
+def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
+            y_pred_col='y_pred'):
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
 
@@ -40,7 +41,6 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
 
     model = load_object_file(model_path + generate_model_filename(model_type, target))
     y_pred = model.predict(X_to_predict[features])
-    y_pred_col = 'y_pred_{}_{}'.format(target, model_type)
 
     X_to_predict[y_pred_col] = y_pred
 
