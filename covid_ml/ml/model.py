@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 from dsbox.utils import write_object_file, load_object_file
 
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
 
 def create_model(model_type='rf'):
@@ -13,6 +13,12 @@ def create_model(model_type='rf'):
                                      max_depth=15,
                                      max_features=0.8,
                                      n_jobs=1)
+
+    if model_type == 'gbt':
+        return GradientBoostingRegressor(n_estimators=200,
+                                         learning_rate=0.01,
+                                         max_leaf_nodes=48,
+                                         n_jobs=1)
 
 
 def generate_model_filename(model_type, target):
