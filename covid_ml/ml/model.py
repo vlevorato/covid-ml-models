@@ -15,9 +15,8 @@ def create_model(model_type='rf'):
                                      n_jobs=1)
 
     if model_type == 'gbt':
-        return GradientBoostingRegressor(n_estimators=200,
-                                         learning_rate=0.01,
-                                         max_leaf_nodes=48)
+        return GradientBoostingRegressor(n_estimators=400,
+                                         learning_rate=0.01)
 
 
 def generate_model_filename(model_type, target):
