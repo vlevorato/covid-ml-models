@@ -9,7 +9,7 @@ def prepare_data(dataframe, location='France', date_col='date'):
         dataframe = dataframe[dataframe['location'] == location]
     dataframe['date'] = pd.to_datetime(dataframe[date_col])
     dataframe = dataframe.resample('D', on=date_col).mean().reset_index(drop=False)
-    dataframe = dataframe.interpolate()
+    dataframe = dataframe.interpolate(limit_area='inside')
 
     return dataframe
 
