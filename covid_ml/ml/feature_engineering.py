@@ -5,7 +5,7 @@ from dsbox.ml.feature_engineering.timeseries import RollingWindower, Shifter
 
 def prepare_data(dataframe, location='France', date_col='date'):
     print('DF shape: {}'.format(dataframe.shape))
-    if location in dataframe.columns:
+    if 'location' in dataframe.columns:
         dataframe = dataframe[dataframe['location'] == location]
     dataframe['date'] = pd.to_datetime(dataframe[date_col])
     dataframe = dataframe.resample('D', on=date_col).mean().reset_index(drop=False)
