@@ -13,3 +13,11 @@ def export_predictions(dataframe, model_type=None, target=None):
     dataframe['date_export'] = pd.to_datetime(dataframe['date_export'])
 
     return dataframe
+
+
+def get_bq_query(query_name, file_path):
+    bq_file = '{}sql/{}.sql'.format(file_path, query_name)
+    f = open(bq_file, "r")
+    query = f.read()
+    f.close()
+    return query

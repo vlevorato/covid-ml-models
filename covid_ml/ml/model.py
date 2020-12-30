@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 from dsbox.utils import write_object_file, load_object_file
+from lightgbm import LGBMRegressor
 
 from sklearn.ensemble import RandomForestRegressor
 
@@ -13,6 +14,12 @@ def create_model(model_type='rf'):
                                      max_depth=15,
                                      max_features=0.8,
                                      n_jobs=1)
+
+    if model_type == 'lgbm':
+        return LGBMRegressor(n_estimators=200,
+                             learning_rate=0.01,
+                             num_leaves=48,
+                             n_jobs=1)
 
 
 def generate_model_filename(model_type, target):
