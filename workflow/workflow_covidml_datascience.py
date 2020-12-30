@@ -75,8 +75,8 @@ task_merge_data.set_downstream(task_fe)
 Train/Predict
 """
 
-task_models = TaskGroup("Train_predict", dag=dag)
-task_fe.set_downstream(task_models)
+task_group_models = TaskGroup("Train_predict", dag=dag)
+task_fe.set_downstream(task_group_models)
 
 for target in targets:
     for model_type in model_types:
@@ -88,8 +88,8 @@ for target in targets:
                                           'target': target,
                                           'features': cols_to_keep},
                                   input_unit=input_data_final_unit,
-                                  task_group=task_models,
-                                  task_id='Train_model_{}'.format(target),
+                                  task_group=task_group_models,
+                                  task_id='Train_model_{}_{}'.format(model_type, target),
                                   dag=dag)
 
         task_fe.set_downstream(task_train)
@@ -104,8 +104,8 @@ for target in targets:
                                             'features': cols_to_keep},
                                     input_unit=input_data_final_unit,
                                     output_unit=output_predictions_unit,
-                                    task_group=task_models,
-                                    task_id='Predict_model_{}'.format(target),
+                                    task_group=task_group_models,
+                                    task_id='Predict_model_{}_{}'.format(model_type, target),
                                     dag=dag)
 
         task_train.set_downstream(task_predict)
@@ -114,4 +114,4 @@ task_launch_export_predictions_dag = TriggerDagRunOperator(task_id='Trigger_expo
                                                            trigger_dag_id='covidml_export_data_to_bq',
                                                            dag=dag)
 
-task_models.set_downstream(task_launch_export_predictions_dag)
+task_group_models.set_downstream(task_launch_export_predictions_dag)
