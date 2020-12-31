@@ -47,7 +47,7 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
         X_to_predict = X_to_predict[pd.isnull(X_to_predict[target])]
         split_date = str(datetime.now().date())
 
-    X_to_predict = X_to_predict[X_to_predict[date_col] > split_date]
+    X_to_predict = X_to_predict[X_to_predict[date_col] >= split_date]
 
     model = load_object_file(model_path + generate_model_filename(model_type, target))
     y_pred = model.predict(X_to_predict[features])
