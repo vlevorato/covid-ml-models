@@ -41,9 +41,10 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
 
-    X_to_predict = dataframe[pd.isnull(dataframe[target])]
+    X_to_predict = dataframe
 
     if split_date is None:
+        X_to_predict = X_to_predict[pd.isnull(X_to_predict[target])]
         split_date = str(datetime.now().date())
 
     X_to_predict = X_to_predict[X_to_predict[date_col] > split_date]
