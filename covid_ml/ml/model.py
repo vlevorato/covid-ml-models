@@ -23,8 +23,11 @@ def generate_model_filename(model_type, target):
     return model_type + '_' + target + '.model'
 
 
-def train(dataframe, model_type='rf', model_path=None, target=None, features=None):
+def train(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None, split_date=None):
     X = dataframe.dropna(subset=features + [target])
+
+    if split_date is not None:
+        X = X[X[date_col] < split_date]
 
     model = create_model(model_type=model_type)
     model.fit(X[features], X[target])
@@ -34,14 +37,16 @@ def train(dataframe, model_type='rf', model_path=None, target=None, features=Non
 
 
 def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
-            y_pred_col='y_pred'):
+            y_pred_col='y_pred', split_date=None):
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
 
     X_to_predict = dataframe[pd.isnull(dataframe[target])]
 
-    now_date = datetime.now().date()
-    X_to_predict = X_to_predict[X_to_predict[date_col] > str(now_date)]
+    if split_date is None:
+        split_date = str(datetime.now().date())
+
+    X_to_predict = X_to_predict[X_to_predict[date_col] > split_date]
 
     model = load_object_file(model_path + generate_model_filename(model_type, target))
     y_pred = model.predict(X_to_predict[features])
