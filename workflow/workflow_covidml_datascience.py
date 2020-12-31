@@ -14,7 +14,7 @@ from covid_ml.ml.model import train, predict
 dag = DAG(dag_id='covidml_data_science',
           default_args=dag_args,
           description='Data Science workflow for train-predict Covid insights',
-          schedule_interval='10 0 * * *',  # every day at 00:10 am
+          schedule_interval='5 0 * * *',  # every day at 00:05 am
           catchup=False)
 
 """
