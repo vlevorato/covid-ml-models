@@ -78,6 +78,8 @@ Train/Predict
 task_group_models = TaskGroup("Train_predict", dag=dag)
 task_fe.set_downstream(task_group_models)
 
+split_date = None
+
 for target in targets:
     for model_type in model_types:
         input_data_final_unit = DataInputFileUnit(data_paths['intermediate_data_path'] + 'X_features.parquet',
@@ -86,7 +88,8 @@ for target in targets:
                                   params={'model_type': model_type,
                                           'model_path': config_variables['COVIDML_MODEL_PATH'],
                                           'target': target,
-                                          'features': cols_to_keep},
+                                          'features': cols_to_keep,
+                                          'split_date': None},
                                   input_unit=input_data_final_unit,
                                   task_group=task_group_models,
                                   task_id='Train_model_{}_{}'.format(model_type, target),
@@ -101,7 +104,8 @@ for target in targets:
                                     params={'model_type': model_type,
                                             'model_path': config_variables['COVIDML_MODEL_PATH'],
                                             'target': target,
-                                            'features': cols_to_keep},
+                                            'features': cols_to_keep,
+                                            'split_date': None},
                                     input_unit=input_data_final_unit,
                                     output_unit=output_predictions_unit,
                                     task_group=task_group_models,
