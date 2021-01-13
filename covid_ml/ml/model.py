@@ -1,7 +1,9 @@
 from datetime import datetime
 
 import pandas as pd
+from dsbox.ml.metrics import root_mean_squared_error
 from dsbox.utils import write_object_file, load_object_file
+from dsbox.ml.feature_selection.greedy import greedy_feature_selection
 
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
@@ -23,7 +25,7 @@ def create_model(model_type='elastic_net'):
         return BayesianRidge(normalize=True)
 
     if model_type == 'elastic_net':
-        return ElasticNet(normalize=True,  max_iter=100000, l1_ratio=0.9)
+        return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
 
 
 def generate_model_filename(model_type, target):
@@ -63,3 +65,20 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     X_to_predict[y_pred_col] = X_to_predict[y_pred_col].map(lambda x: 0 if x < 0 else x)
 
     return X_to_predict[[date_col, y_pred_col]]
+
+
+def feature_selection(dataframe, date_col='date', split_date=None, model_type='elastic_net',
+                      method='greedy', score_func=root_mean_squared_error, target=None, features=None):
+    X = dataframe.dropna(subset=features + [target])
+
+    X_train = X[X[date_col] < split_date]
+    X_test = X[X[date_col] >= split_date]
+
+    cols_selected = features
+    model = create_model(model_type)
+
+    if method == 'greedy':
+        cols_selected = greedy_feature_selection(X_train, X_test, X_train[target], X_test[target], model,
+                                                 features, score_func)
+
+    return pd.DataFrame(cols_selected)
