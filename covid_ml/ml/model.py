@@ -4,9 +4,10 @@ import pandas as pd
 from dsbox.utils import write_object_file, load_object_file
 
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import BayesianRidge, ElasticNet
 
 
-def create_model(model_type='rf'):
+def create_model(model_type='elastic_net'):
     if model_type == 'rf':
         return RandomForestRegressor(n_estimators=200,
                                      min_samples_leaf=2,
@@ -17,6 +18,12 @@ def create_model(model_type='rf'):
     if model_type == 'gbt':
         return GradientBoostingRegressor(n_estimators=400,
                                          learning_rate=0.01)
+
+    if model_type == 'bridge':
+        return BayesianRidge(normalize=True)
+
+    if model_type == 'elastic_net':
+        return ElasticNet(normalize=True,  max_iter=100000, l1_ratio=0.9)
 
 
 def generate_model_filename(model_type, target):
@@ -53,5 +60,6 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     y_pred = model.predict(X_to_predict[features])
 
     X_to_predict[y_pred_col] = y_pred
+    X_to_predict[y_pred_col] = X_to_predict[y_pred_col].map(lambda x: 0 if x < 0 else x)
 
     return X_to_predict[[date_col, y_pred_col]]
