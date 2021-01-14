@@ -178,7 +178,7 @@ Predict
 
 task_predict_models = TaskGroup("Predict", dag=dag)
 
-task_dummy_start_predict = DummyOperator(trigger_rule='all_done',
+task_dummy_start_predict = DummyOperator(trigger_rule='none_failed',
                                          task_id='Start_predictions',
                                          task_group=task_predict_models,
                                          dag=dag)
