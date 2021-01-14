@@ -33,10 +33,10 @@ def generate_model_filename(model_type, target):
     return model_type + '_' + target + '.model'
 
 
-def check_features(features):
+def check_features(features, col_name='features'):
     if isinstance(features, DataInputUnit):
         df_features = features.read_data()
-        features = list(df_features[0].values)
+        features = list(df_features[col_name].values)
 
     return features
 
@@ -95,4 +95,6 @@ def feature_selection(dataframe, date_col='date', split_date=None, model_type='e
         cols_selected = greedy_feature_selection(X_train, X_test, X_train[target], X_test[target], model,
                                                  features, score_func)
 
-    return pd.DataFrame(cols_selected)
+    df_features = pd.DataFrame(cols_selected)
+    df_features.columns = ['features']
+    return df_features
