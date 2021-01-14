@@ -33,7 +33,6 @@ task_export_historical_data = DataOperator(operation_function=dummy_function,
                                            dag=dag)
 
 task_group_export_predictions = TaskGroup("Export_predictions", dag=dag)
-task_export_historical_data.set_downstream(task_group_export_predictions)
 
 for target in targets:
     for model_type in model_types:
@@ -51,6 +50,8 @@ for target in targets:
                                                     task_group=task_group_export_predictions,
                                                     task_id='Export_predictions_{}_{}'.format(model_type, target),
                                                     dag=dag)
+
+task_export_historical_data.set_downstream(task_group_export_predictions)
 
 data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_table_template',
                                                             config_variables['COVIDML_PROJECT_PATH']),
