@@ -171,6 +171,9 @@ task_predict_models = TaskGroup("Predict", dag=dag)
 
 for target in targets:
     for model_type in model_types:
+        input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
+                                                          + 'features_{}_{}.parquet'.format(model_type, target),
+                                                          pandas_read_function_name='read_parquet')
 
         output_predictions_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] +
                                                      'X_predict_{}_{}.parquet'.format(model_type, target),
