@@ -95,6 +95,7 @@ def feature_selection(dataframe, date_col='date', split_date=None, model_type='e
         cols_selected = greedy_feature_selection(X_train, X_test, X_train[target], X_test[target], model,
                                                  features, score_func)
 
+    print('Features selected: {}'.format(len(cols_selected)))
     df_features = pd.DataFrame(cols_selected)
     df_features.columns = ['features']
     return df_features
@@ -103,13 +104,14 @@ def feature_selection(dataframe, date_col='date', split_date=None, model_type='e
 def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', model_path=None, target=None,
                                              current_features=None, candidates_features=None, split_date=None,
                                              score_func=root_mean_squared_error):
-    dataframe = data_unit.read_data()
-    current_features = check_features(current_features)
-    candidates_features = check_features(candidates_features)
+
     if not os.path.isfile(model_path + generate_model_filename(model_type, target)):
         print("No model present.")
         return True
 
+    dataframe = data_unit.read_data()
+    current_features = check_features(current_features)
+    candidates_features = check_features(candidates_features)
     current_model = load_object_file(model_path + generate_model_filename(model_type, target))
 
     X = dataframe.dropna(subset=[target])
