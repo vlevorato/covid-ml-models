@@ -79,7 +79,6 @@ input_data_final_unit = DataInputFileUnit(data_paths['intermediate_data_path'] +
 Feature Selection
 """
 task_group_feature_selection = TaskGroup("Feature_selection", dag=dag)
-task_fe.set_downstream(task_group_feature_selection)
 
 for target in targets:
     for model_type in model_types:
@@ -98,12 +97,13 @@ for target in targets:
                                               task_id='Feature_selection_{}_{}'.format(model_type, target),
                                               dag=dag)
 
+task_fe.set_downstream(task_group_feature_selection)
+
 """
 Train/Predict
 """
 
 task_group_models = TaskGroup("Train_predict", dag=dag)
-task_group_feature_selection.set_downstream(task_group_models)
 
 split_date_for_train_predict = None
 
@@ -140,6 +140,8 @@ for target in targets:
                                     dag=dag)
 
         task_train.set_downstream(task_predict)
+
+task_group_feature_selection.set_downstream(task_group_models)
 
 task_launch_export_predictions_dag = TriggerDagRunOperator(task_id='Trigger_export_predictions_dag',
                                                            trigger_dag_id='covidml_export_data_to_bq',
