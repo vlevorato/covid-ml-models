@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 from dsbox.ml.metrics import root_mean_squared_error
+from dsbox.operators.data_unit import DataInputUnit
 from dsbox.utils import write_object_file, load_object_file
 from dsbox.ml.feature_selection.greedy import greedy_feature_selection
 
@@ -32,7 +33,18 @@ def generate_model_filename(model_type, target):
     return model_type + '_' + target + '.model'
 
 
+def check_features(features):
+    if isinstance(features, DataInputUnit):
+        df_features = features.read_data()
+        features = list(df_features[0].values)
+
+    return features
+
+
 def train(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None, split_date=None):
+
+    features = check_features(features)
+
     X = dataframe.dropna(subset=features + [target])
 
     if split_date is not None:
@@ -49,6 +61,8 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
             y_pred_col='y_pred', split_date=None):
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
+
+    features = check_features(features)
 
     X_to_predict = dataframe
 

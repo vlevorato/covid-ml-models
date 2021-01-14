@@ -108,11 +108,15 @@ split_date_for_train_predict = None
 
 for target in targets:
     for model_type in model_types:
+        input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
+                                                          + 'features_{}_{}.parquet'.format(model_type, target),
+                                                          pandas_read_function_name='read_parquet')
+
         task_train = DataOperator(operation_function=train,
                                   params={'model_type': model_type,
                                           'model_path': config_variables['COVIDML_MODEL_PATH'],
                                           'target': target,
-                                          'features': cols_to_keep,
+                                          'features': input_features_selection_unit,
                                           'split_date': split_date_for_train_predict},
                                   input_unit=input_data_final_unit,
                                   task_group=task_group_models,
@@ -128,7 +132,7 @@ for target in targets:
                                     params={'model_type': model_type,
                                             'model_path': config_variables['COVIDML_MODEL_PATH'],
                                             'target': target,
-                                            'features': cols_to_keep,
+                                            'features': input_features_selection_unit,
                                             'split_date': split_date_for_train_predict},
                                     input_unit=input_data_final_unit,
                                     output_unit=output_predictions_unit,
