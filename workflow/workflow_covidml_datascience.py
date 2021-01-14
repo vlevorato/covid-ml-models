@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import ShortCircuitOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.task_group import TaskGroup
@@ -112,6 +113,11 @@ Train model if none or better one is found
 split_date_for_train_predict = None
 
 task_train_models = TaskGroup("Train", dag=dag)
+
+task_dummy_start_train = DummyOperator(task_id='Start_train',
+                                       task_group=task_train_models,
+                                       dag=dag)
+
 for target in targets:
     for model_type in model_types:
         input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
@@ -139,8 +145,11 @@ for target in targets:
                                                             dag=dag
                                                             )
 
+        task_dummy_start_train.set_downstream(task_check_if_retrain_needed)
+
         task_copy_new_features = BashOperator(bash_command='cp {} {}'.format(data_paths['features_candidates_path']
-                                                                             + 'features_{}_{}.parquet'.format(model_type, target),
+                                                                             + 'features_{}_{}.parquet'.format(
+            model_type, target),
                                                                              data_paths['features_path']),
                                               task_id='Update_features_{}_{}'.format(model_type, target),
                                               task_group=task_train_models,
@@ -169,6 +178,11 @@ Predict
 
 task_predict_models = TaskGroup("Predict", dag=dag)
 
+task_dummy_start_predict = DummyOperator(trigger_rule='all_done',
+                                         task_id='Start_predictions',
+                                         task_group=task_predict_models,
+                                         dag=dag)
+
 for target in targets:
     for model_type in model_types:
         input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
@@ -190,6 +204,7 @@ for target in targets:
                                     task_id='Predict_model_{}_{}'.format(model_type, target),
                                     dag=dag)
 
+        task_dummy_start_predict.set_downstream(task_predict)
 
 task_group_feature_selection.set_downstream(task_predict_models)
 task_train_models.set_downstream(task_predict_models)
