@@ -118,13 +118,13 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     X_train = X[X[date_col] < split_date]
     X_test = X[X[date_col] >= split_date]
 
-    y_pred_current = current_model.predict(X_test[current_features].dropna(subset=current_features))
+    y_pred_current = current_model.predict(X_test[current_features].dropna())
     current_score = score_func(X_test[target], y_pred_current)
     print("Current score: {}".format(current_score))
 
     new_model = create_model(model_type=model_type)
-    new_model.fit(X_train[candidates_features].dropna(subset=candidates_features), X_train[candidates_features].dropna(subset=candidates_features)[target])
-    y_pred_new = new_model.predict(X_test[candidates_features].dropna(subset=candidates_features))
+    new_model.fit(X_train[candidates_features].dropna(), X_train.dropna(subset=candidates_features)[target])
+    y_pred_new = new_model.predict(X_test[candidates_features].dropna())
     new_score = score_func(X_test[target], y_pred_new)
     print("New score: {}".format(new_score))
 
