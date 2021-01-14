@@ -106,7 +106,7 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)
     candidates_features = check_features(candidates_features)
-    if not os.path.isfile(model_path):
+    if not os.path.isfile(model_path + generate_model_filename(model_type, target)):
         print("No model present.")
         return True
 
