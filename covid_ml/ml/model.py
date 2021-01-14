@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import pandas as pd
@@ -42,7 +43,6 @@ def check_features(features, col_name='features'):
 
 
 def train(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None, split_date=None):
-
     features = check_features(features)
 
     X = dataframe.dropna(subset=features + [target])
@@ -59,7 +59,6 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
 
 def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
             y_pred_col='y_pred', split_date=None):
-
     features = check_features(features)
 
     dataframe[features] = dataframe[features].fillna(method='ffill') \
@@ -99,3 +98,37 @@ def feature_selection(dataframe, date_col='date', split_date=None, model_type='e
     df_features = pd.DataFrame(cols_selected)
     df_features.columns = ['features']
     return df_features
+
+
+def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', model_path=None, target=None,
+                                             current_features=None, candidates_features=None, split_date=None,
+                                             score_func=root_mean_squared_error):
+    dataframe = data_unit.read_data()
+    current_features = check_features(current_features)
+    candidates_features = check_features(candidates_features)
+    if not os.path.isfile(model_path):
+        print("No model present.")
+        return True
+
+    current_model = load_object_file(model_path + generate_model_filename(model_type, target))
+
+    X = dataframe.dropna(subset=[target])
+    X_train = X[X[date_col] < split_date]
+    X_test = X[X[date_col] >= split_date]
+
+    y_pred_current = current_model.predict(X_test[current_features].dropna(subset=current_features))
+    current_score = score_func(X_test[target], y_pred_current)
+    print("Current score: {}".format(current_score))
+
+    new_model = create_model(model_type=model_type)
+    new_model.fit(X_train[candidates_features].dropna(subset=candidates_features), X_train[target])
+    y_pred_new = new_model.predict(X_test[candidates_features].dropna(subset=candidates_features))
+    new_score = score_func(X_test[target], y_pred_new)
+    print("New score: {}".format(new_score))
+
+    if new_score < current_score:
+        print("Better model found!")
+        return True
+    else:
+        print("No better model found...")
+        return False
