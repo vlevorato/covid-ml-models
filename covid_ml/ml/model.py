@@ -123,7 +123,7 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     print("Current score: {}".format(current_score))
 
     new_model = create_model(model_type=model_type)
-    new_model.fit(X_train[candidates_features].dropna(subset=candidates_features), X_train[target])
+    new_model.fit(X_train[candidates_features].dropna(subset=candidates_features), X_train[candidates_features].dropna(subset=candidates_features)[target])
     y_pred_new = new_model.predict(X_test[candidates_features].dropna(subset=candidates_features))
     new_score = score_func(X_test[target], y_pred_new)
     print("New score: {}".format(new_score))
