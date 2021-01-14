@@ -59,10 +59,11 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
 
 def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
             y_pred_col='y_pred', split_date=None):
-    dataframe[features] = dataframe[features].fillna(method='ffill') \
-        .fillna(method='bfill')
 
     features = check_features(features)
+
+    dataframe[features] = dataframe[features].fillna(method='ffill') \
+        .fillna(method='bfill')
 
     X_to_predict = dataframe
 
