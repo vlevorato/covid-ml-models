@@ -123,8 +123,6 @@ for target in targets:
                                   task_id='Train_model_{}_{}'.format(model_type, target),
                                   dag=dag)
 
-        task_fe.set_downstream(task_train)
-
         output_predictions_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] +
                                                      'X_predict_{}_{}.parquet'.format(model_type, target),
                                                      pandas_write_function_name='to_parquet')
