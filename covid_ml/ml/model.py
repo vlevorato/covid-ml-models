@@ -12,8 +12,6 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
 from sklearn.metrics import make_scorer
 
-scorer_rmse = make_scorer(root_mean_squared_error)
-
 
 def create_model(model_type='elastic_net'):
     if model_type == 'rf':
@@ -91,7 +89,8 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     return X_to_predict[[date_col, y_pred_col]]
 
 
-def permutation_importance_select_features(cols_to_test, model, df, target, scorer=scorer_rmse):
+def permutation_importance_select_features(cols_to_test, model, df, target, score_func=root_mean_squared_error):
+    scorer = make_scorer(score_func)
     perm = PermutationImportance(model, scoring=scorer, n_iter=3).fit(df[cols_to_test], df[target])
     perm_importance = pd.DataFrame({'feature': cols_to_test, 'importance': perm.feature_importances_}).sort_values(
         'importance', ascending=False)
@@ -121,7 +120,15 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
                                                  features, score_func)
     if method == 'permutation_importance':
         model.fit(X_train[features], X_train[target])
+        score = score_func(X_test[target], model.predict(X_test[features]))
+        print("Original score: {}".format(score))
         cols_selected = permutation_importance_select_features(features, model, X_test, target)
+        model.fit(X_train[cols_selected], X_train[target])
+        new_score = score_func(X_test[target], model.predict(X_test[cols_selected]))
+        print("New score: {}".format(new_score))
+        if new_score > score:
+            print("No optim found :(")
+            cols_selected = features
 
     print('Features selected: {}'.format(len(cols_selected)))
     df_features = pd.DataFrame(cols_selected)
