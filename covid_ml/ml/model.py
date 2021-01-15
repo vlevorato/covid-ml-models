@@ -81,12 +81,14 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     return X_to_predict[[date_col, y_pred_col]]
 
 
-def feature_selection(dataframe, date_col='date', split_date=None, model_type='elastic_net',
+def feature_selection(dataframe, date_col='date', split_date=None, max_date=None, model_type='elastic_net',
                       method='greedy', score_func=root_mean_squared_error, target=None, features=None):
     X = dataframe.dropna(subset=features + [target])
 
     X_train = X[X[date_col] < split_date]
     X_test = X[X[date_col] >= split_date]
+    if max_date is not None:
+        X_test = X_test[X_test[date_col] < max_date]
 
     cols_selected = features
     model = create_model(model_type)
@@ -103,11 +105,11 @@ def feature_selection(dataframe, date_col='date', split_date=None, model_type='e
 
 def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', model_path=None, target=None,
                                              current_features=None, candidates_features=None, split_date=None,
-                                             score_func=root_mean_squared_error):
+                                             score_func=root_mean_squared_error, task_id_train=None, task_id_skip=None):
 
     if not os.path.isfile(model_path + generate_model_filename(model_type, target)):
         print("No model present.")
-        return True
+        return task_id_train
 
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)
@@ -116,21 +118,21 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
 
     X = dataframe.dropna(subset=[target])
     X_train = X[X[date_col] < split_date]
-    X_test = X[X[date_col] >= split_date]
+    X_validation = X[X[date_col] >= split_date]
 
-    y_pred_current = current_model.predict(X_test[current_features].dropna())
-    current_score = score_func(X_test[target], y_pred_current)
+    y_pred_current = current_model.predict(X_validation[current_features].dropna())
+    current_score = score_func(X_validation[target], y_pred_current)
     print("Current score: {}".format(current_score))
 
     new_model = create_model(model_type=model_type)
     new_model.fit(X_train[candidates_features].dropna(), X_train.dropna(subset=candidates_features)[target])
-    y_pred_new = new_model.predict(X_test[candidates_features].dropna())
-    new_score = score_func(X_test[target], y_pred_new)
+    y_pred_new = new_model.predict(X_validation[candidates_features].dropna())
+    new_score = score_func(X_validation[target], y_pred_new)
     print("New score: {}".format(new_score))
 
     if new_score < current_score:
         print("Better model found!")
-        return True
+        return task_id_train
     else:
         print("No better model found...")
-        return False
+        return task_id_skip

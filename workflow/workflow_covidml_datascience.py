@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.dummy import DummyOperator
-from airflow.operators.python import ShortCircuitOperator
+from airflow.operators.python import BranchPythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.utils.task_group import TaskGroup
 from dsbox.operators.data_operator import DataOperator
@@ -21,6 +21,10 @@ dag = DAG(dag_id='covidml_data_science',
           description='Data Science workflow for train-predict Covid insights',
           schedule_interval='5 0 * * *',  # every day at 00:05 am
           catchup=False)
+
+split_date_feature_selection_test = datetime.now() - timedelta(days=40)
+split_date_feature_selection_validation = datetime.now() - timedelta(days=15)
+split_date_for_train_predict = None
 
 """
 Data prep
@@ -84,8 +88,6 @@ input_data_final_unit = DataInputFileUnit(data_paths['intermediate_data_path'] +
 Feature Selection
 """
 
-split_date_feature_selection = datetime.now() - timedelta(days=15)
-
 task_group_feature_selection = TaskGroup("Feature_selection", dag=dag)
 
 for target in targets:
@@ -95,7 +97,8 @@ for target in targets:
                                                             pandas_write_function_name='to_parquet')
 
         task_feature_selection = DataOperator(operation_function=feature_selection,
-                                              params={'split_date': split_date_feature_selection,
+                                              params={'split_date': split_date_feature_selection_test,
+                                                      'max_date': split_date_feature_selection_validation,
                                                       'model_type': model_type,
                                                       'target': target,
                                                       'features': cols_to_keep},
@@ -110,7 +113,6 @@ task_fe.set_downstream(task_group_feature_selection)
 """
 Train model if none or better one is found
 """
-split_date_for_train_predict = None
 
 task_train_models = TaskGroup("Train", dag=dag)
 
@@ -129,7 +131,7 @@ for target in targets:
                                                                                                        target),
                                                                      pandas_read_function_name='read_parquet')
 
-        task_check_if_retrain_needed = ShortCircuitOperator(python_callable=check_if_new_features_gives_better_model,
+        task_check_if_retrain_needed = BranchPythonOperator(python_callable=check_if_new_features_gives_better_model,
                                                             op_kwargs={'data_unit': input_data_final_unit,
                                                                        'model_type': model_type,
                                                                        'model_path': config_variables[
@@ -137,7 +139,11 @@ for target in targets:
                                                                        'target': target,
                                                                        'current_features': input_features_selection_unit,
                                                                        'candidates_features': input_candidates_features_selection_unit,
-                                                                       'split_date': split_date_feature_selection
+                                                                       'split_date': split_date_feature_selection_validation,
+                                                                       'task_id_train': 'Update_features_{}_{}'.format(
+                                                                           model_type, target),
+                                                                       'task_id_skip': 'Skip_train_{}_{}'.format(
+                                                                           model_type, target)
                                                                        },
                                                             task_id='Check_features_{}_{}'.format(model_type,
                                                                                                   target),
@@ -146,6 +152,10 @@ for target in targets:
                                                             )
 
         task_dummy_start_train.set_downstream(task_check_if_retrain_needed)
+
+        task_dummy_skip_train = DummyOperator(task_id='Skip_train_{}_{}'.format(model_type, target),
+                                              task_group=task_train_models,
+                                              dag=dag)
 
         task_copy_new_features = BashOperator(bash_command='cp {} {}'.format(data_paths['features_candidates_path']
                                                                              + 'features_{}_{}.parquet'.format(
@@ -156,6 +166,7 @@ for target in targets:
                                               dag=dag)
 
         task_check_if_retrain_needed.set_downstream(task_copy_new_features)
+        task_check_if_retrain_needed.set_downstream(task_dummy_skip_train)
 
         task_train = DataOperator(operation_function=train,
                                   params={'model_type': model_type,
@@ -170,6 +181,14 @@ for target in targets:
 
         task_copy_new_features.set_downstream(task_train)
 
+        task_dummy_finish_train = DummyOperator(task_id='Finish_train_{}_{}'.format(model_type, target),
+                                                trigger_rule='none_failed',
+                                                task_group=task_train_models,
+                                                dag=dag)
+
+        task_train.set_downstream(task_dummy_finish_train)
+        task_dummy_skip_train.set_downstream(task_dummy_finish_train)
+
 task_group_feature_selection.set_downstream(task_train_models)
 
 """
@@ -178,8 +197,7 @@ Predict
 
 task_predict_models = TaskGroup("Predict", dag=dag)
 
-task_dummy_start_predict = DummyOperator(trigger_rule='none_failed',
-                                         task_id='Start_predictions',
+task_dummy_start_predict = DummyOperator(task_id='Start_predictions',
                                          task_group=task_predict_models,
                                          dag=dag)
 
@@ -206,7 +224,6 @@ for target in targets:
 
         task_dummy_start_predict.set_downstream(task_predict)
 
-task_group_feature_selection.set_downstream(task_predict_models)
 task_train_models.set_downstream(task_predict_models)
 
 task_launch_export_predictions_dag = TriggerDagRunOperator(task_id='Trigger_export_predictions_dag',
