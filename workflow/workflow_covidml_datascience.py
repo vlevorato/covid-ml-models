@@ -140,10 +140,12 @@ for target in targets:
                                                                        'current_features': input_features_selection_unit,
                                                                        'candidates_features': input_candidates_features_selection_unit,
                                                                        'split_date': split_date_feature_selection_validation,
-                                                                       'task_id_train': 'Update_features_{}_{}'.format(
-                                                                           model_type, target),
-                                                                       'task_id_skip': 'Skip_train_{}_{}'.format(
-                                                                           model_type, target)
+                                                                       'task_id_train': '{}.Update_features_{}_{}'.format(
+                                                                           task_train_models.group_id, model_type,
+                                                                           target),
+                                                                       'task_id_skip': '{}.Skip_train_{}_{}'.format(
+                                                                           task_train_models.group_id, model_type,
+                                                                           target)
                                                                        },
                                                             task_id='Check_features_{}_{}'.format(model_type,
                                                                                                   target),
