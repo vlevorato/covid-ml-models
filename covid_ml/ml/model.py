@@ -6,9 +6,13 @@ from dsbox.ml.metrics import root_mean_squared_error
 from dsbox.operators.data_unit import DataInputUnit
 from dsbox.utils import write_object_file, load_object_file
 from dsbox.ml.feature_selection.greedy import greedy_feature_selection
+from eli5.sklearn import PermutationImportance
 
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
+from sklearn.metrics import make_scorer
+
+scorer_rmse = make_scorer(root_mean_squared_error)
 
 
 def create_model(model_type='elastic_net'):
@@ -87,6 +91,14 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     return X_to_predict[[date_col, y_pred_col]]
 
 
+def permutation_importance_select_features(cols_to_test, model, df, target, scorer=scorer_rmse):
+    perm = PermutationImportance(model, scoring=scorer, n_iter=3).fit(df[cols_to_test], df[target])
+    perm_importance = pd.DataFrame({'feature': cols_to_test, 'importance': perm.feature_importances_}).sort_values(
+        'importance', ascending=False)
+    perm_importance = perm_importance[perm_importance['importance'] > 0]
+    return list(perm_importance['feature'].values)
+
+
 def feature_selection(dataframe, date_col='date', split_date=None, max_date=None, model_type='elastic_net',
                       method='greedy', score_func=root_mean_squared_error, target=None, features=None):
     X = dataframe.dropna(subset=features + [target])
@@ -107,6 +119,9 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
     if method == 'greedy':
         cols_selected = greedy_feature_selection(X_train, X_test, X_train[target], X_test[target], model,
                                                  features, score_func)
+    if method == 'permutation_importance':
+        model.fit(X_train[features], X_train[target])
+        cols_selected = permutation_importance_select_features(features, model, X_test, target)
 
     print('Features selected: {}'.format(len(cols_selected)))
     df_features = pd.DataFrame(cols_selected)
@@ -114,13 +129,13 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
     return df_features
 
 
-def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', model_path=None, target=None,
+def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', target=None,
                                              current_features=None, candidates_features=None, split_date=None,
-                                             score_func=root_mean_squared_error, task_id_train=None, task_id_skip=None):
-
-    if not os.path.isfile(model_path + generate_model_filename(model_type, target)):
-        print("No model present.")
-        return task_id_train
+                                             score_func=root_mean_squared_error, task_id_update=None,
+                                             task_id_skip=None):
+    if not os.path.isfile(current_features.input_path):
+        print("No features present.")
+        return task_id_update
 
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)
@@ -149,7 +164,7 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
 
     if new_score < current_score:
         print("Better model found!")
-        return task_id_train
+        return task_id_update
     else:
         print("No better model found...")
         return task_id_skip

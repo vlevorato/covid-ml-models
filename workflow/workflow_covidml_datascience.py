@@ -134,16 +134,14 @@ for target in targets:
         task_check_if_retrain_needed = BranchPythonOperator(python_callable=check_if_new_features_gives_better_model,
                                                             op_kwargs={'data_unit': input_data_final_unit,
                                                                        'model_type': model_type,
-                                                                       'model_path': config_variables[
-                                                                           'COVIDML_MODEL_PATH'],
                                                                        'target': target,
                                                                        'current_features': input_features_selection_unit,
                                                                        'candidates_features': input_candidates_features_selection_unit,
                                                                        'split_date': split_date_feature_selection_validation,
-                                                                       'task_id_train': '{}.Update_features_{}_{}'.format(
+                                                                       'task_id_update': '{}.Update_features_{}_{}'.format(
                                                                            task_train_models.group_id, model_type,
                                                                            target),
-                                                                       'task_id_skip': '{}.Skip_train_{}_{}'.format(
+                                                                       'task_id_skip': '{}.Skip_features_update_{}_{}'.format(
                                                                            task_train_models.group_id, model_type,
                                                                            target)
                                                                        },
@@ -155,9 +153,9 @@ for target in targets:
 
         task_dummy_start_train.set_downstream(task_check_if_retrain_needed)
 
-        task_dummy_skip_train = DummyOperator(task_id='Skip_train_{}_{}'.format(model_type, target),
-                                              task_group=task_train_models,
-                                              dag=dag)
+        task_dummy_skip_update_features = DummyOperator(task_id='Skip_features_update_{}_{}'.format(model_type, target),
+                                                        task_group=task_train_models,
+                                                        dag=dag)
 
         task_copy_new_features = BashOperator(bash_command='cp {} {}'.format(data_paths['features_candidates_path']
                                                                              + 'features_{}_{}.parquet'.format(
@@ -168,7 +166,7 @@ for target in targets:
                                               dag=dag)
 
         task_check_if_retrain_needed.set_downstream(task_copy_new_features)
-        task_check_if_retrain_needed.set_downstream(task_dummy_skip_train)
+        task_check_if_retrain_needed.set_downstream(task_dummy_skip_update_features)
 
         task_train = DataOperator(operation_function=train,
                                   params={'model_type': model_type,
@@ -182,14 +180,7 @@ for target in targets:
                                   dag=dag)
 
         task_copy_new_features.set_downstream(task_train)
-
-        task_dummy_finish_train = DummyOperator(task_id='Finish_train_{}_{}'.format(model_type, target),
-                                                trigger_rule='none_failed',
-                                                task_group=task_train_models,
-                                                dag=dag)
-
-        task_train.set_downstream(task_dummy_finish_train)
-        task_dummy_skip_train.set_downstream(task_dummy_finish_train)
+        task_dummy_skip_update_features.set_downstream(task_train)
 
 task_group_feature_selection.set_downstream(task_train_models)
 

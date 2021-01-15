@@ -26,4 +26,4 @@ for col in cols_to_shift:
 
 targets = ['new_cases_2', 'nouveaux_patients_hospitalises',
            'nouveaux_patients_reanimation', 'new_deaths']
-model_types = ['bridge', 'elastic_net']
+model_types = ['elastic_net']
