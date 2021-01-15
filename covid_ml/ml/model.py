@@ -90,6 +90,11 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
     if max_date is not None:
         X_test = X_test[X_test[date_col] < max_date]
 
+    print("Train dataset min: {}".format(X_train[date_col].min()))
+    print("Train dataset max: {}".format(X_train[date_col].max()))
+    print("Test dataset min: {}".format(X_test[date_col].min()))
+    print("Test dataset max: {}".format(X_test[date_col].max()))
+
     cols_selected = features
     model = create_model(model_type)
 
@@ -119,6 +124,11 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     X = dataframe.dropna(subset=[target])
     X_train = X[X[date_col] < split_date]
     X_validation = X[X[date_col] >= split_date]
+
+    print("Train dataset min: {}".format(X_train[date_col].min()))
+    print("Train dataset max: {}".format(X_train[date_col].max()))
+    print("Validation dataset min: {}".format(X_validation[date_col].min()))
+    print("Validation dataset max: {}".format(X_validation[date_col].max()))
 
     y_pred_current = current_model.predict(X_validation[current_features].dropna())
     current_score = score_func(X_validation.dropna(subset=current_features)[target], y_pred_current)
