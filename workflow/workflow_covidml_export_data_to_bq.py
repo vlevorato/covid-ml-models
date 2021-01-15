@@ -7,7 +7,7 @@ from dsbox.operators.data_unit import DataInputFileUnit
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.ml_metadata import targets, model_types
-from covid_ml.utils.bq_generation import generate_data_viz_query
+from covid_ml.utils.bq_generation import generate_data_viz_query, generate_data_viz_raw_query
 from covid_ml.utils.bq_units import DataOutputBigQueryUnit
 from covid_ml.utils.io import dummy_function, export_predictions, get_bq_query
 
@@ -58,10 +58,22 @@ data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_tab
                                                bq_dataset=config_variables['COVIDML_BQ_DATASET'],
                                                targets=targets)
 
+data_viz_raw_table_query = generate_data_viz_raw_query(get_bq_query('create_data_viz_raw_table_template',
+                                                                    config_variables['COVIDML_PROJECT_PATH']),
+                                                       bq_dataset=config_variables['COVIDML_BQ_DATASET'],
+                                                       targets=targets)
+
 task_generate_data_viz_table = BigQueryInsertJobOperator(gcp_conn_id=config_variables['COVIDML_BQ_CONN_ID'],
                                                          configuration={"query": {"query": data_viz_table_query,
                                                                                   "useLegacySql": "False", }},
                                                          task_id='Generate_data_viz_table',
                                                          dag=dag)
 
+task_generate_data_viz_raw_table = BigQueryInsertJobOperator(gcp_conn_id=config_variables['COVIDML_BQ_CONN_ID'],
+                                                             configuration={"query": {"query": data_viz_raw_table_query,
+                                                                                      "useLegacySql": "False", }},
+                                                             task_id='Generate_data_viz_raw_table',
+                                                             dag=dag)
+
 task_group_export_predictions.set_downstream(task_generate_data_viz_table)
+task_group_export_predictions.set_downstream(task_generate_data_viz_raw_table)
