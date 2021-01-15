@@ -177,6 +177,7 @@ for target in targets:
                                           'split_date': split_date_for_train_predict},
                                   input_unit=input_data_final_unit,
                                   task_group=task_train_models,
+                                  trigger_rule='none_failed',
                                   task_id='Train_model_{}_{}'.format(model_type, target),
                                   dag=dag)
 
