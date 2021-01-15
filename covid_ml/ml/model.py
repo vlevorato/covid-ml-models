@@ -50,6 +50,9 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
     if split_date is not None:
         X = X[X[date_col] < split_date]
 
+    print("Train dataset min: {}".format(X[date_col].min()))
+    print("Train dataset max: {}".format(X[date_col].max()))
+
     model = create_model(model_type=model_type)
     model.fit(X[features], X[target])
 
@@ -71,6 +74,9 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
         split_date = str(datetime.now().date())
 
     X_to_predict = X_to_predict[X_to_predict[date_col] >= split_date]
+
+    print("Predict dataset min: {}".format(X_to_predict[date_col].min()))
+    print("Predict dataset max: {}".format(X_to_predict[date_col].max()))
 
     model = load_object_file(model_path + generate_model_filename(model_type, target))
     y_pred = model.predict(X_to_predict[features])
