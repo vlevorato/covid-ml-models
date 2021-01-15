@@ -125,7 +125,6 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)
     candidates_features = check_features(candidates_features)
-    current_model = load_object_file(model_path + generate_model_filename(model_type, target))
 
     X = dataframe.dropna(subset=[target])
     X_train = X[X[date_col] < split_date]
@@ -136,6 +135,8 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     print("Validation dataset min: {}".format(X_validation[date_col].min()))
     print("Validation dataset max: {}".format(X_validation[date_col].max()))
 
+    current_model = create_model(model_type=model_type)
+    current_model.fit(X_train[current_features].dropna(), X_train.dropna(subset=current_features)[target])
     y_pred_current = current_model.predict(X_validation[current_features].dropna())
     current_score = score_func(X_validation.dropna(subset=current_features)[target], y_pred_current)
     print("Current score: {}".format(current_score))
