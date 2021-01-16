@@ -31,5 +31,5 @@ target_model_dict = {'new_cases_2': 'elastic_net',
 
 target_feature_selection_method_dict = {'new_cases_2': 'permutation_importance',
                                         'nouveaux_patients_hospitalises': 'permutation_importance',
-                                        'nouveaux_patients_reanimation': 'greedy',
+                                        'nouveaux_patients_reanimation': 'no_selection',
                                         'new_deaths': 'permutation_importance'}

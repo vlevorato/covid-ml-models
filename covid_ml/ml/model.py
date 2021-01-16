@@ -130,6 +130,9 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
             print("No optim found :(")
             cols_selected = features
 
+    if method == 'no_selection':
+        cols_selected = features
+
     print('Features selected: {}'.format(len(cols_selected)))
     df_features = pd.DataFrame(cols_selected)
     df_features.columns = ['features']
