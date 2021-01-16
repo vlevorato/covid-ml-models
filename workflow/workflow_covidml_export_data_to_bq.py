@@ -55,12 +55,12 @@ task_export_historical_data.set_downstream(task_group_export_predictions)
 data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_table_template',
                                                             config_variables['COVIDML_PROJECT_PATH']),
                                                bq_dataset=config_variables['COVIDML_BQ_DATASET'],
-                                               targets=targets)
+                                               targets=target_model_dict.keys())
 
 data_viz_raw_table_query = generate_data_viz_raw_query(get_bq_query('create_data_viz_raw_table_template',
                                                                     config_variables['COVIDML_PROJECT_PATH']),
                                                        bq_dataset=config_variables['COVIDML_BQ_DATASET'],
-                                                       targets=targets)
+                                                       targets=target_model_dict.keys())
 
 task_generate_data_viz_table = BigQueryInsertJobOperator(gcp_conn_id=config_variables['COVIDML_BQ_CONN_ID'],
                                                          configuration={"query": {"query": data_viz_table_query,
