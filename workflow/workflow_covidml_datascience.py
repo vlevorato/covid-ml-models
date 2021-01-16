@@ -13,7 +13,7 @@ from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.feature_engineering import prepare_data, merge_data, create_features
 from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep, \
-    targets, model_types, days_to_shift
+    days_to_shift, target_model_dict, target_feature_selection_method_dict
 from covid_ml.ml.model import train, predict, feature_selection, check_if_new_features_gives_better_model
 
 dag = DAG(dag_id='covidml_data_science',
@@ -90,24 +90,23 @@ Feature Selection
 
 task_group_feature_selection = TaskGroup("Feature_selection", dag=dag)
 
-for target in targets:
-    for model_type in model_types:
-        output_features_selection_unit = DataOutputFileUnit(data_paths['features_candidates_path']
-                                                            + 'features_{}_{}.parquet'.format(model_type, target),
-                                                            pandas_write_function_name='to_parquet')
+for target, model_type in target_model_dict.items():
+    output_features_selection_unit = DataOutputFileUnit(data_paths['features_candidates_path']
+                                                        + 'features_{}_{}.parquet'.format(model_type, target),
+                                                        pandas_write_function_name='to_parquet')
 
-        task_feature_selection = DataOperator(operation_function=feature_selection,
-                                              params={'split_date': split_date_feature_selection_test,
-                                                      'max_date': split_date_feature_selection_validation,
-                                                      'model_type': model_type,
-                                                      'target': target,
-                                                      'features': cols_to_keep,
-                                                      'method': 'permutation_importance'},
-                                              input_unit=input_data_final_unit,
-                                              output_unit=output_features_selection_unit,
-                                              task_group=task_group_feature_selection,
-                                              task_id='Feature_selection_{}_{}'.format(model_type, target),
-                                              dag=dag)
+    task_feature_selection = DataOperator(operation_function=feature_selection,
+                                          params={'split_date': split_date_feature_selection_test,
+                                                  'max_date': split_date_feature_selection_validation,
+                                                  'model_type': model_type,
+                                                  'target': target,
+                                                  'features': cols_to_keep,
+                                                  'method': target_feature_selection_method_dict[target]},
+                                          input_unit=input_data_final_unit,
+                                          output_unit=output_features_selection_unit,
+                                          task_group=task_group_feature_selection,
+                                          task_id='Feature_selection_{}_{}'.format(model_type, target),
+                                          dag=dag)
 
 task_fe.set_downstream(task_group_feature_selection)
 
@@ -121,68 +120,67 @@ task_dummy_start_train = DummyOperator(task_id='Start_train',
                                        task_group=task_train_models,
                                        dag=dag)
 
-for target in targets:
-    for model_type in model_types:
-        input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
-                                                          + 'features_{}_{}.parquet'.format(model_type, target),
-                                                          pandas_read_function_name='read_parquet')
+for target, model_type in target_model_dict.items():
+    input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
+                                                      + 'features_{}_{}.parquet'.format(model_type, target),
+                                                      pandas_read_function_name='read_parquet')
 
-        input_candidates_features_selection_unit = DataInputFileUnit(data_paths['features_candidates_path']
-                                                                     + 'features_{}_{}.parquet'.format(model_type,
-                                                                                                       target),
-                                                                     pandas_read_function_name='read_parquet')
+    input_candidates_features_selection_unit = DataInputFileUnit(data_paths['features_candidates_path']
+                                                                 + 'features_{}_{}.parquet'.format(model_type,
+                                                                                                   target),
+                                                                 pandas_read_function_name='read_parquet')
 
-        task_check_if_retrain_needed = BranchPythonOperator(python_callable=check_if_new_features_gives_better_model,
-                                                            op_kwargs={'data_unit': input_data_final_unit,
-                                                                       'model_type': model_type,
-                                                                       'target': target,
-                                                                       'current_features': input_features_selection_unit,
-                                                                       'candidates_features': input_candidates_features_selection_unit,
-                                                                       'split_date': split_date_feature_selection_validation,
-                                                                       'task_id_update': '{}.Update_features_{}_{}'.format(
-                                                                           task_train_models.group_id, model_type,
-                                                                           target),
-                                                                       'task_id_skip': '{}.Skip_features_update_{}_{}'.format(
-                                                                           task_train_models.group_id, model_type,
-                                                                           target)
-                                                                       },
-                                                            task_id='Check_features_{}_{}'.format(model_type,
-                                                                                                  target),
-                                                            task_group=task_train_models,
-                                                            dag=dag
-                                                            )
-
-        task_dummy_start_train.set_downstream(task_check_if_retrain_needed)
-
-        task_dummy_skip_update_features = DummyOperator(task_id='Skip_features_update_{}_{}'.format(model_type, target),
+    task_check_if_retrain_needed = BranchPythonOperator(python_callable=check_if_new_features_gives_better_model,
+                                                        op_kwargs={'data_unit': input_data_final_unit,
+                                                                   'model_type': model_type,
+                                                                   'target': target,
+                                                                   'current_features': input_features_selection_unit,
+                                                                   'candidates_features': input_candidates_features_selection_unit,
+                                                                   'split_date': split_date_feature_selection_validation,
+                                                                   'task_id_update': '{}.Update_features_{}_{}'.format(
+                                                                       task_train_models.group_id, model_type,
+                                                                       target),
+                                                                   'task_id_skip': '{}.Skip_features_update_{}_{}'.format(
+                                                                       task_train_models.group_id, model_type,
+                                                                       target)
+                                                                   },
+                                                        task_id='Check_features_{}_{}'.format(model_type,
+                                                                                              target),
                                                         task_group=task_train_models,
-                                                        dag=dag)
+                                                        dag=dag
+                                                        )
 
-        task_copy_new_features = BashOperator(bash_command='cp {} {}'.format(data_paths['features_candidates_path']
-                                                                             + 'features_{}_{}.parquet'.format(
-            model_type, target),
-                                                                             data_paths['features_path']),
-                                              task_id='Update_features_{}_{}'.format(model_type, target),
-                                              task_group=task_train_models,
-                                              dag=dag)
+    task_dummy_start_train.set_downstream(task_check_if_retrain_needed)
 
-        task_check_if_retrain_needed.set_downstream(task_copy_new_features)
-        task_check_if_retrain_needed.set_downstream(task_dummy_skip_update_features)
+    task_dummy_skip_update_features = DummyOperator(task_id='Skip_features_update_{}_{}'.format(model_type, target),
+                                                    task_group=task_train_models,
+                                                    dag=dag)
 
-        task_train = DataOperator(operation_function=train,
-                                  params={'model_type': model_type,
-                                          'model_path': config_variables['COVIDML_MODEL_PATH'],
-                                          'target': target,
-                                          'features': input_features_selection_unit,
-                                          'split_date': split_date_for_train_predict},
-                                  input_unit=input_data_final_unit,
-                                  task_group=task_train_models,
-                                  trigger_rule='none_failed',
-                                  task_id='Train_model_{}_{}'.format(model_type, target),
-                                  dag=dag)
+    task_copy_new_features = BashOperator(bash_command='cp {} {}'.format(data_paths['features_candidates_path']
+                                                                         + 'features_{}_{}.parquet'.format(
+        model_type, target),
+                                                                         data_paths['features_path']),
+                                          task_id='Update_features_{}_{}'.format(model_type, target),
+                                          task_group=task_train_models,
+                                          dag=dag)
 
-        task_copy_new_features.set_downstream(task_train)
-        task_dummy_skip_update_features.set_downstream(task_train)
+    task_check_if_retrain_needed.set_downstream(task_copy_new_features)
+    task_check_if_retrain_needed.set_downstream(task_dummy_skip_update_features)
+
+    task_train = DataOperator(operation_function=train,
+                              params={'model_type': model_type,
+                                      'model_path': config_variables['COVIDML_MODEL_PATH'],
+                                      'target': target,
+                                      'features': input_features_selection_unit,
+                                      'split_date': split_date_for_train_predict},
+                              input_unit=input_data_final_unit,
+                              task_group=task_train_models,
+                              trigger_rule='none_failed',
+                              task_id='Train_model_{}_{}'.format(model_type, target),
+                              dag=dag)
+
+    task_copy_new_features.set_downstream(task_train)
+    task_dummy_skip_update_features.set_downstream(task_train)
 
 task_group_feature_selection.set_downstream(task_train_models)
 
@@ -196,8 +194,7 @@ task_dummy_start_predict = DummyOperator(task_id='Start_predictions',
                                          task_group=task_predict_models,
                                          dag=dag)
 
-for target in targets:
-    for model_type in model_types:
+for target, model_type in target_model_dict.items():
         input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
                                                           + 'features_{}_{}.parquet'.format(model_type, target),
                                                           pandas_read_function_name='read_parquet')
