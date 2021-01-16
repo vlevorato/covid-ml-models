@@ -94,7 +94,7 @@ def permutation_importance_select_features(cols_to_test, model, df, target, scor
     perm = PermutationImportance(model, scoring=scorer, n_iter=3).fit(df[cols_to_test], df[target])
     perm_importance = pd.DataFrame({'feature': cols_to_test, 'importance': perm.feature_importances_}).sort_values(
         'importance', ascending=False)
-    perm_importance = perm_importance[perm_importance['importance'] > 0]
+    perm_importance = perm_importance[perm_importance['importance'] >= 0]
     return list(perm_importance['feature'].values)
 
 
