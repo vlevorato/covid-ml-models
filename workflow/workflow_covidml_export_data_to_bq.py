@@ -6,7 +6,7 @@ from dsbox.operators.data_unit import DataInputFileUnit
 
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
-from covid_ml.ml.ml_metadata import targets, model_types
+from covid_ml.ml.ml_metadata import target_model_dict
 from covid_ml.utils.bq_generation import generate_data_viz_query, generate_data_viz_raw_query
 from covid_ml.utils.bq_units import DataOutputBigQueryUnit
 from covid_ml.utils.io import dummy_function, export_predictions, get_bq_query
@@ -34,8 +34,7 @@ task_export_historical_data = DataOperator(operation_function=dummy_function,
 
 task_group_export_predictions = TaskGroup("Export_predictions", dag=dag)
 
-for target in targets:
-    for model_type in model_types:
+for target, model_type in target_model_dict.items():
         input_predictions_unit = DataInputFileUnit(data_paths['intermediate_data_path'] +
                                                    'X_predict_{}_{}.parquet'.format(model_type, target),
                                                    pandas_read_function_name='read_parquet')
