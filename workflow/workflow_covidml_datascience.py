@@ -12,8 +12,8 @@ from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, Dat
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.feature_engineering import prepare_data, merge_data, create_features
-from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep, \
-    days_to_shift, target_model_dict, target_feature_selection_method_dict
+from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep,\
+    target_model_dict, target_feature_selection_method_dict
 from covid_ml.ml.model import train, predict, feature_selection, check_if_new_features_gives_better_model
 
 dag = DAG(dag_id='covidml_data_science',
@@ -70,7 +70,6 @@ Feature Engineering
 
 task_fe = DataOperator(operation_function=create_features,
                        params={'cols_to_shift': cols_to_shift,
-                               'days_to_shift': days_to_shift,
                                'agg_ops': agg_ops,
                                'rolling_windows': rolling_windows,
                                'shift_rolling_windows': shift_rolling_windows},

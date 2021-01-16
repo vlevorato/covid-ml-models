@@ -18,8 +18,7 @@ def merge_data(dataframe_list, merge_col='date'):
     return dataframe_list[0].merge(dataframe_list[1], on=merge_col, how='inner')
 
 
-def create_features(dataframe, date_col='date', predict_period_days=15,
-                    cols_to_shift=None, days_to_shift=None,
+def create_features(dataframe, date_col='date', predict_period_days=15, cols_to_shift=None,
                     agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
     dataframe = dataframe.sort_values(date_col)
 
@@ -41,17 +40,12 @@ def create_features(dataframe, date_col='date', predict_period_days=15,
     dataframe = pd.concat([dataframe, df_to_predict], sort=False).reset_index(drop=True)
 
     """
-    Shifted and diff features
+    Misc features
     """
-    shifter = Shifter(shifts=days_to_shift)
-    df_shifted = shifter.fit_transform(dataframe[cols_to_shift])
-    for i in range(1, len(days_to_shift)):
-        for col in cols_to_shift:
-            df_shifted['diff_' + col + '_' + str(days_to_shift[i - 1]) + '_' + str(days_to_shift[i])] = \
-                df_shifted[col + '_' + str(days_to_shift[i - 1])] - df_shifted[col + '_' + str(days_to_shift[i])]
+    dataframe['weekday'] = dataframe['date'].map(lambda d: pd.to_datetime(d).weekday())
 
     """
-    Rolling windows shifted features
+    Rolling windows shifted and diff features
     """
     df_roll = None
     for op in agg_ops:
@@ -64,6 +58,12 @@ def create_features(dataframe, date_col='date', predict_period_days=15,
     shifter = Shifter(shifts=shift_rolling_windows)
     df_roll_shift = shifter.fit_transform(df_roll)
 
-    dataframe = dataframe.join(df_roll_shift).join(df_shifted)
+    for col in cols_to_shift:
+        for i in range(1, len(shift_rolling_windows)):
+            df_roll_shift['diff_mean_3_{}_{}_{}'.format(col, shift_rolling_windows[i - 1], shift_rolling_windows[i])] = \
+                df_roll_shift['mean_3_{}_{}'.format(col, shift_rolling_windows[i - 1])] - df_roll_shift[
+                    'mean_3_{}_{}'.format(col, shift_rolling_windows[i])]
+
+    dataframe = dataframe.join(df_roll_shift)
 
     return dataframe
