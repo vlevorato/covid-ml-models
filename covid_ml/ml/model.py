@@ -22,7 +22,7 @@ def create_model(model_type='elastic_net'):
                                      n_jobs=1)
 
     if model_type == 'gbt':
-        return GradientBoostingRegressor(n_estimators=400,
+        return GradientBoostingRegressor(n_estimators=500,
                                          learning_rate=0.01)
 
     if model_type == 'bridge':
@@ -48,6 +48,7 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
     features = check_features(features)
 
     X = dataframe.dropna(subset=features + [target])
+    X = X[X[target] > 0].reset_index(drop=True)
 
     if split_date is not None:
         X = X[X[date_col] < split_date]

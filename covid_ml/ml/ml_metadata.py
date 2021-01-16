@@ -25,7 +25,7 @@ for col in cols_to_shift:
 target_model_dict = {'new_cases_2': 'elastic_net',
                      'nouveaux_patients_hospitalises': 'elastic_net',
                      'nouveaux_patients_reanimation': 'elastic_net',
-                     'new_deaths': 'elastic_net'}
+                     'new_deaths': 'gbt'}
 
 target_feature_selection_method_dict = {'new_cases_2': 'no_selection',
                                         'nouveaux_patients_hospitalises': 'no_selection',
