@@ -40,11 +40,11 @@ def extract_feature_contribution(df_features, model_type='elastic_net', model_pa
     df_features_contrib = pd.DataFrame()
 
     if model_type in linear_models_type:
-        df_features_contrib = pd.DataFrame({'features': df_features['features'], 'importance': model.coef_})
+        df_features_contrib = pd.DataFrame({'feature': df_features['features'], 'importance': model.coef_})
 
     if model_type in ensemble_models_type:
         df_features_contrib = pd.DataFrame(
-            {'features': df_features['features'], 'importance': model.feature_importances_})
+            {'feature': df_features['features'], 'importance': model.feature_importances_})
 
     return df_features_contrib
 
