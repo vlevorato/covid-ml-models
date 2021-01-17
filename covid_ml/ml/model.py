@@ -33,19 +33,25 @@ def create_model(model_type='elastic_net'):
         return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
 
 
-def extract_feature_contribution(df_features, model_type='elastic_net', model_path=None, target=None):
+def feature_contribution(model, features, model_type='elastic_net'):
     linear_models_type = ['elastic_net', 'bridge']
     ensemble_models_type = ['rf', 'gbt']
 
-    model = load_object_file(model_path + generate_model_filename(model_type, target))
     df_features_contrib = pd.DataFrame()
 
     if model_type in linear_models_type:
-        df_features_contrib = pd.DataFrame({'feature': df_features['features'], 'importance': model.coef_})
+        df_features_contrib = pd.DataFrame({'feature': features, 'importance': model.coef_})
 
     if model_type in ensemble_models_type:
         df_features_contrib = pd.DataFrame(
-            {'feature': df_features['features'], 'importance': model.feature_importances_})
+            {'feature': features, 'importance': model.feature_importances_})
+
+    return df_features_contrib
+
+
+def extract_feature_contribution(df_features, model_type='elastic_net', model_path=None, target=None):
+    model = load_object_file(model_path + generate_model_filename(model_type, target))
+    df_features_contrib = feature_contribution(model, df_features['features'], model_type=model_type)
 
     return df_features_contrib
 
@@ -146,15 +152,20 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
     if method == 'greedy':
         cols_selected = greedy_feature_selection(X_train, X_test, X_train[target], X_test[target], model,
                                                  features, score_func)
-    if method == 'permutation_importance':
+    if method == 'permutation_importance' or method == 'filter_zero_coeff':
         model.fit(X_train[features], X_train[target])
         score = score_func(X_test[target], model.predict(X_test[features]))
         print("Original score: {}".format(score))
-        cols_selected = permutation_importance_select_features(features, model, X_test, target)
+        if method == 'permutation_importance':
+            cols_selected = permutation_importance_select_features(features, model, X_test, target)
+        if method == 'filter_zero_coeff':
+            df_features_contrib = feature_contribution(model, features, model_type=model_type)
+            cols_selected = list(df_features_contrib[df_features_contrib['importance'] > 0]['feature'])
+
         model.fit(X_train[cols_selected], X_train[target])
         new_score = score_func(X_test[target], model.predict(X_test[cols_selected]))
         print("New score: {}".format(new_score))
-        if new_score > score:
+        if new_score >= score:
             print("No optim found :(")
             cols_selected = features
 

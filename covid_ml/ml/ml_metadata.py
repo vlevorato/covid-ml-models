@@ -27,7 +27,7 @@ target_model_dict = {'new_cases_2': 'elastic_net',
                      'nouveaux_patients_reanimation': 'elastic_net',
                      'new_deaths': 'gbt'}
 
-target_feature_selection_method_dict = {'new_cases_2': 'no_selection',
-                                        'nouveaux_patients_hospitalises': 'no_selection',
-                                        'nouveaux_patients_reanimation': 'no_selection',
-                                        'new_deaths': 'no_selection'}
+target_feature_selection_method_dict = {'new_cases_2': 'filter_zero_coeff',
+                                        'nouveaux_patients_hospitalises': 'filter_zero_coeff',
+                                        'nouveaux_patients_reanimation': 'filter_zero_coeff',
+                                        'new_deaths': 'filter_zero_coeff'}

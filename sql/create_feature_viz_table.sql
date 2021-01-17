@@ -2,7 +2,7 @@ CREATE OR REPLACE TABLE
   {0}.viz_feature_contribution AS (
   SELECT
     feature_contribution_last.*,
-    (feature_contribution_last.importance / feature_contribution_last_tot.total_importance) AS importance_proportion
+    (ABS(feature_contribution_last.importance) / feature_contribution_last_tot.total_importance) AS importance_proportion
   FROM
     `{0}.feature_contribution_last` AS feature_contribution_last
   INNER JOIN (
