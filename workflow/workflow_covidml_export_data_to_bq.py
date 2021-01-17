@@ -81,6 +81,10 @@ data_viz_raw_table_query = generate_data_viz_raw_query(get_bq_query('create_data
                                                        bq_dataset=config_variables['COVIDML_BQ_DATASET'],
                                                        targets=target_model_dict.keys())
 
+feature_viz_table_query = get_bq_query('create_feature_viz_table',
+                                       config_variables['COVIDML_PROJECT_PATH']).format(
+    config_variables['COVIDML_BQ_DATASET'])
+
 task_generate_data_viz_table = BigQueryInsertJobOperator(gcp_conn_id=config_variables['COVIDML_BQ_CONN_ID'],
                                                          configuration={"query": {"query": data_viz_table_query,
                                                                                   "useLegacySql": "False", }},
@@ -93,5 +97,12 @@ task_generate_data_viz_raw_table = BigQueryInsertJobOperator(gcp_conn_id=config_
                                                              task_id='Generate_data_viz_raw_table',
                                                              dag=dag)
 
+task_generate_feature_viz_table = BigQueryInsertJobOperator(gcp_conn_id=config_variables['COVIDML_BQ_CONN_ID'],
+                                                            configuration={"query": {"query": feature_viz_table_query,
+                                                                                     "useLegacySql": "False", }},
+                                                            task_id='Generate_feature_viz_table',
+                                                            dag=dag)
+
 task_group_export_predictions.set_downstream(task_generate_data_viz_table)
 task_group_export_predictions.set_downstream(task_generate_data_viz_raw_table)
+task_group_export_predictions.set_downstream(task_generate_feature_viz_table)

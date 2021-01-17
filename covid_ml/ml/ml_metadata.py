@@ -11,7 +11,7 @@ agg_ops = ['mean', 'median', 'std']
 rolling_windows = [3, 7, 15, 30]
 shift_rolling_windows = [14, 21, 28]
 
-cols_to_keep = ['weekday']
+cols_to_keep = []
 for col in cols_to_shift:
     for i in range(1, len(shift_rolling_windows)):
         cols_to_keep.append(
