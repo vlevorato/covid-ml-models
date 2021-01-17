@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def generate_data_viz_query(template_query, joining_field='date',
                             bq_dataset=None, targets=None):
     pre_query = 'WITH'
@@ -55,3 +58,10 @@ def generate_data_viz_raw_query(template_query, joining_field='date',
 
     query = template_query.format(bq_dataset, pre_query, select_query, join_query)
     return query
+
+
+def generate_referential(ref_dict):
+    variable_names = ref_dict.keys()
+    col_names = ref_dict.values()
+    df_ref = pd.DataFrame({'variable': variable_names, 'libelle': col_names})
+    return df_ref

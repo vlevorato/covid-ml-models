@@ -6,8 +6,8 @@ from dsbox.operators.data_unit import DataInputFileUnit
 
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
-from covid_ml.ml.ml_metadata import target_model_dict
-from covid_ml.utils.bq_generation import generate_data_viz_query, generate_data_viz_raw_query
+from covid_ml.ml.ml_metadata import target_model_dict, ref_features, ref_models
+from covid_ml.utils.bq_generation import generate_data_viz_query, generate_data_viz_raw_query, generate_referential
 from covid_ml.utils.bq_units import DataOutputBigQueryUnit
 from covid_ml.utils.io import dummy_function, get_bq_query, export_data
 
@@ -106,3 +106,26 @@ task_generate_feature_viz_table = BigQueryInsertJobOperator(gcp_conn_id=config_v
 task_group_export_predictions.set_downstream(task_generate_data_viz_table)
 task_group_export_predictions.set_downstream(task_generate_data_viz_raw_table)
 task_group_export_predictions.set_downstream(task_generate_feature_viz_table)
+
+output_features_ref_bq_unit = DataOutputBigQueryUnit(table_id='{}.ref_features'.format(bq_dataset),
+                                                     path_json_key=path_json_key,
+                                                     drop_table=True)
+
+output_models_ref_bq_unit = DataOutputBigQueryUnit(table_id='{}.ref_models'.format(bq_dataset),
+                                                   path_json_key=path_json_key,
+                                                   drop_table=True)
+
+task_generate_features_referential = DataOperator(operation_function=generate_referential,
+                                                  params={'ref_dict': ref_features},
+                                                  output_unit=output_features_ref_bq_unit,
+                                                  task_id='Generate_features_referential',
+                                                  dag=dag)
+
+task_generate_models_referential = DataOperator(operation_function=generate_referential,
+                                                params={'ref_dict': ref_models},
+                                                output_unit=output_models_ref_bq_unit,
+                                                task_id='Generate_models_referential',
+                                                dag=dag)
+
+task_generate_features_referential.set_downstream(task_generate_feature_viz_table)
+task_generate_models_referential.set_downstream(task_generate_feature_viz_table)
