@@ -11,6 +11,7 @@ from eli5.sklearn import PermutationImportance
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
 from sklearn.metrics import make_scorer
+from sklearn.preprocessing import MinMaxScaler
 
 
 def create_model(model_type='elastic_net'):
@@ -61,8 +62,15 @@ def check_features(features, col_name='features'):
     return features
 
 
+def prepare_data(dataframe, features=None):
+    mm_scaler = MinMaxScaler()
+    dataframe[features] = mm_scaler.fit_transform(dataframe[features])
+    return dataframe
+
+
 def train(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None, split_date=None):
     features = check_features(features)
+    dataframe = prepare_data(dataframe, features=features)
 
     X = dataframe.dropna(subset=features + [target])
     X = X[X[target] > 0].reset_index(drop=True)
@@ -83,6 +91,7 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
 def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
             y_pred_col='y_pred', split_date=None):
     features = check_features(features)
+    dataframe = prepare_data(dataframe, features=features)
 
     dataframe[features] = dataframe[features].fillna(method='ffill') \
         .fillna(method='bfill')
