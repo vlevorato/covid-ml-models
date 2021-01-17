@@ -12,9 +12,10 @@ from dsbox.operators.data_unit import DataInputFileUnit, DataOutputFileUnit, Dat
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.feature_engineering import prepare_data, merge_data, create_features
-from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep,\
+from covid_ml.ml.ml_metadata import cols_to_shift, agg_ops, rolling_windows, shift_rolling_windows, cols_to_keep, \
     target_model_dict, target_feature_selection_method_dict
-from covid_ml.ml.model import train, predict, feature_selection, check_if_new_features_gives_better_model
+from covid_ml.ml.model import train, predict, feature_selection, check_if_new_features_gives_better_model, \
+    extract_feature_contribution
 
 dag = DAG(dag_id='covidml_data_science',
           default_args=dag_args,
@@ -181,6 +182,24 @@ for target, model_type in target_model_dict.items():
     task_copy_new_features.set_downstream(task_train)
     task_dummy_skip_update_features.set_downstream(task_train)
 
+    output_features_contrib_unit = DataOutputFileUnit(data_paths['features']
+                                                      + 'features_contrib_{}_{}.parquet'.format(model_type, target),
+                                                      pandas_write_function_name='to_parquet')
+
+    task_extract_feature_contrib = DataOperator(operation_function=extract_feature_contribution,
+                                                params={'model_type': model_type,
+                                                        'model_path': config_variables['COVIDML_MODEL_PATH'],
+                                                        'target': target},
+                                                input_unit=input_features_selection_unit,
+                                                output_unit=output_features_contrib_unit,
+                                                task_group=task_train_models,
+                                                task_id='Extract_feature_contribution_{}_{}'.format(model_type, target),
+                                                dag=dag
+                                                )
+
+    task_train.set_downstream(task_extract_feature_contrib)
+
+
 task_group_feature_selection.set_downstream(task_train_models)
 
 """
@@ -194,26 +213,26 @@ task_dummy_start_predict = DummyOperator(task_id='Start_predictions',
                                          dag=dag)
 
 for target, model_type in target_model_dict.items():
-        input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
-                                                          + 'features_{}_{}.parquet'.format(model_type, target),
-                                                          pandas_read_function_name='read_parquet')
+    input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
+                                                      + 'features_{}_{}.parquet'.format(model_type, target),
+                                                      pandas_read_function_name='read_parquet')
 
-        output_predictions_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] +
-                                                     'X_predict_{}_{}.parquet'.format(model_type, target),
-                                                     pandas_write_function_name='to_parquet')
-        task_predict = DataOperator(operation_function=predict,
-                                    params={'model_type': model_type,
-                                            'model_path': config_variables['COVIDML_MODEL_PATH'],
-                                            'target': target,
-                                            'features': input_features_selection_unit,
-                                            'split_date': split_date_for_train_predict},
-                                    input_unit=input_data_final_unit,
-                                    output_unit=output_predictions_unit,
-                                    task_group=task_predict_models,
-                                    task_id='Predict_model_{}_{}'.format(model_type, target),
-                                    dag=dag)
+    output_predictions_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] +
+                                                 'X_predict_{}_{}.parquet'.format(model_type, target),
+                                                 pandas_write_function_name='to_parquet')
+    task_predict = DataOperator(operation_function=predict,
+                                params={'model_type': model_type,
+                                        'model_path': config_variables['COVIDML_MODEL_PATH'],
+                                        'target': target,
+                                        'features': input_features_selection_unit,
+                                        'split_date': split_date_for_train_predict},
+                                input_unit=input_data_final_unit,
+                                output_unit=output_predictions_unit,
+                                task_group=task_predict_models,
+                                task_id='Predict_model_{}_{}'.format(model_type, target),
+                                dag=dag)
 
-        task_dummy_start_predict.set_downstream(task_predict)
+    task_dummy_start_predict.set_downstream(task_predict)
 
 task_train_models.set_downstream(task_predict_models)
 

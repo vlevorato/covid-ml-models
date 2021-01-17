@@ -32,6 +32,23 @@ def create_model(model_type='elastic_net'):
         return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
 
 
+def extract_feature_contribution(df_features, model_type='elastic_net', model_path=None, target=None):
+    linear_models_type = ['elastic_net', 'bridge']
+    ensemble_models_type = ['rf', 'gbt']
+
+    model = load_object_file(model_path + generate_model_filename(model_type, target))
+    df_features_contrib = pd.DataFrame()
+
+    if model_type in linear_models_type:
+        df_features_contrib = pd.DataFrame({'features': df_features['features'], 'importance': model.coef_})
+
+    if model_type in ensemble_models_type:
+        df_features_contrib = pd.DataFrame(
+            {'features': df_features['features'], 'importance': model.feature_importances_})
+
+    return df_features_contrib
+
+
 def generate_model_filename(model_type, target):
     return model_type + '_' + target + '.model'
 
