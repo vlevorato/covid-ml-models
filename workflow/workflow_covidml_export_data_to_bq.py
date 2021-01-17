@@ -50,7 +50,7 @@ for target, model_type in target_model_dict.items():
                                                 task_id='Export_predictions_{}_{}'.format(model_type, target),
                                                 dag=dag)
 
-    input_features_contrib_unit = DataInputFileUnit(data_paths['features']
+    input_features_contrib_unit = DataInputFileUnit(data_paths['features_path']
                                                     + 'features_contrib_{}_{}.parquet'.format(model_type, target),
                                                     pandas_read_function_name='read_parquet')
     output_features_contrib_bq_unit = DataOutputBigQueryUnit(table_id='{}.features_contribution'.format(bq_dataset),

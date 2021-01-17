@@ -182,7 +182,7 @@ for target, model_type in target_model_dict.items():
     task_copy_new_features.set_downstream(task_train)
     task_dummy_skip_update_features.set_downstream(task_train)
 
-    output_features_contrib_unit = DataOutputFileUnit(data_paths['features']
+    output_features_contrib_unit = DataOutputFileUnit(data_paths['features_path']
                                                       + 'features_contrib_{}_{}.parquet'.format(model_type, target),
                                                       pandas_write_function_name='to_parquet')
 
