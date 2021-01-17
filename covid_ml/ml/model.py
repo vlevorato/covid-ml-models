@@ -127,6 +127,7 @@ def permutation_importance_select_features(cols_to_test, model, df, target, scor
 
 def feature_selection(dataframe, date_col='date', split_date=None, max_date=None, model_type='elastic_net',
                       method='greedy', score_func=root_mean_squared_error, target=None, features=None):
+    dataframe = prepare_data(dataframe, features=features)
     X = dataframe.dropna(subset=features + [target])
 
     X_train = X[X[date_col] < split_date]
@@ -177,6 +178,8 @@ def check_if_new_features_gives_better_model(data_unit, date_col='date', model_t
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)
     candidates_features = check_features(candidates_features)
+
+    dataframe = prepare_data(dataframe, features=current_features + candidates_features)
 
     X = dataframe.dropna(subset=[target])
     X_train = X[X[date_col] < split_date]
