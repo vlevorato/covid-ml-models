@@ -3,10 +3,25 @@ import pandas as pd
 from dsbox.ml.feature_engineering.timeseries import RollingWindower, Shifter
 
 
-def prepare_data(dataframe, location='France', date_col='date'):
+def preprocess_location(dataframe, location='France'):
+    return dataframe[dataframe['location'] == location]
+
+
+def preprocess_tests(dataframe):
+    dataframe = dataframe[dataframe['cl_age90'] == 0]
+    dataframe['date'] = dataframe['jour']
+    del dataframe['jour']
+    return dataframe
+
+
+def prepare_data(dataframe, data_file=None, date_col='date'):
     print('DF shape: {}'.format(dataframe.shape))
-    if 'location' in dataframe.columns:
-        dataframe = dataframe[dataframe['location'] == location]
+
+    if data_file == 'owid_data':
+        dataframe = preprocess_location(dataframe)
+    if data_file == 'datagov_tests_data':
+        dataframe = preprocess_tests(dataframe)
+
     dataframe['date'] = pd.to_datetime(dataframe[date_col])
     dataframe = dataframe.resample('D', on=date_col).mean().reset_index(drop=False)
     dataframe = dataframe.interpolate(limit_area='inside')
@@ -15,12 +30,18 @@ def prepare_data(dataframe, location='France', date_col='date'):
 
 
 def merge_data(dataframe_list, merge_col='date'):
-    return dataframe_list[0].merge(dataframe_list[1], on=merge_col, how='inner')
+    dataframe = dataframe_list[0]
+    for i in range(1, len(dataframe_list)):
+        dataframe = dataframe.merge(dataframe_list[i], on=merge_col, how='left')
+    return dataframe
 
 
 def create_features(dataframe, date_col='date', predict_period_days=15, cols_to_shift=None,
                     agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
     dataframe = dataframe.sort_values(date_col)
+
+    dataframe['new_tests_source'] = dataframe['new_tests']
+    dataframe['new_tests'] = dataframe[['new_tests', 'T']].mean(axis=1)
 
     dataframe['total_cas_confirmes_1'] = dataframe['total_cas_confirmes'].shift(1)
     dataframe['new_cases_2'] = dataframe['total_cas_confirmes'] - dataframe['total_cas_confirmes_1']

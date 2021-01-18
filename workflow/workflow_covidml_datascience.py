@@ -31,7 +31,7 @@ split_date_for_train_predict = None
 Data prep
 """
 
-data_files_to_prepare = ['owid_data', 'datagov_data']
+data_files_to_prepare = ['owid_data', 'datagov_data', 'datagov_tests_data']
 
 task_group_prepare_data = TaskGroup("Prepare_data", dag=dag)
 
@@ -40,6 +40,7 @@ for data_file in data_files_to_prepare:
     output_data_file_unit = DataOutputFileUnit(data_paths['intermediate_data_path'] + data_file + '.parquet',
                                                pandas_write_function_name='to_parquet')
     task_prepare_data = DataOperator(operation_function=prepare_data,
+                                     params={'data_file': data_file},
                                      input_unit=input_data_file_unit,
                                      output_unit=output_data_file_unit,
                                      task_id='Prepare_{}'.format(data_file),
