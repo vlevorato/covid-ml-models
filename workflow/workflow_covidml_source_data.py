@@ -31,7 +31,7 @@ task_datagov_import = DataOperator(operation_function=dummy_function,
                                    task_id='Import_DataGov_data',
                                    dag=dag)
 
-input_datagov_tests_data_unit = DataInputFileUnit(data_paths['source_data_gov_test'], sep=';')
+input_datagov_tests_data_unit = DataInputFileUnit(data_paths['source_data_gov_tests'], sep=';')
 output_datagov_tests_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + 'datagov_tests_data.csv', index=False)
 task_datagov_tests_import = DataOperator(operation_function=dummy_function,
                                          input_unit=input_datagov_tests_data_unit,
