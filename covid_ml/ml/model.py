@@ -24,7 +24,8 @@ def create_model(model_type='elastic_net'):
 
     if model_type == 'gbt':
         return GradientBoostingRegressor(n_estimators=500,
-                                         learning_rate=0.01)
+                                         learning_rate=0.01,
+                                         random_state=42)
 
     if model_type == 'bridge':
         return BayesianRidge(normalize=True)
