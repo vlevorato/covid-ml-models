@@ -76,10 +76,9 @@ data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_tab
                                                bq_dataset=config_variables['COVIDML_BQ_DATASET'],
                                                targets=target_model_dict.keys())
 
-data_viz_raw_table_query = generate_data_viz_raw_query(get_bq_query('create_data_viz_raw_table_template',
-                                                                    config_variables['COVIDML_PROJECT_PATH']),
-                                                       bq_dataset=config_variables['COVIDML_BQ_DATASET'],
-                                                       targets=target_model_dict.keys())
+data_viz_raw_table_query = get_bq_query('create_data_viz_raw_table',
+                                        config_variables['COVIDML_PROJECT_PATH']).format(
+    config_variables['COVIDML_BQ_DATASET'])
 
 feature_viz_table_query = get_bq_query('create_feature_viz_table',
                                        config_variables['COVIDML_PROJECT_PATH']).format(
