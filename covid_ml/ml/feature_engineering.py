@@ -36,8 +36,8 @@ def merge_data(dataframe_list, merge_col='date'):
     return dataframe
 
 
-def create_features(dataframe, date_col='date', predict_period_days=15, cols_to_shift=None,
-                    agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
+def create_features(dataframe, date_col='date', predict_period_days=15, predict_period_week_round=False,
+                    cols_to_shift=None, agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
     dataframe = dataframe.sort_values(date_col)
 
     dataframe['new_tests_source'] = dataframe['new_tests']
@@ -54,6 +54,11 @@ def create_features(dataframe, date_col='date', predict_period_days=15, cols_to_
     dates_to_predict = []
     for day_shift in range(1, predict_period_days):
         dates_to_predict.append(now_date + timedelta(days=day_shift))
+
+    if predict_period_week_round:
+        while (now_date + timedelta(days=day_shift)).weekday() != 6:
+            day_shift += 1
+            dates_to_predict.append(now_date + timedelta(days=day_shift))
 
     df_to_predict = pd.DataFrame({date_col: dates_to_predict})
     df_to_predict[date_col] = pd.to_datetime(df_to_predict[date_col])
