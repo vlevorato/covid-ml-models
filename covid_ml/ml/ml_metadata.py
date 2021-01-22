@@ -46,7 +46,7 @@ for col in cols_to_shift:
                                                                         shift_rolling_window)
 
 target_model_dict = {'new_cases_2': 'rf',
-                     'nouveaux_patients_hospitalises': 'lgbm_300',
+                     'nouveaux_patients_hospitalises': 'elastic_net',
                      'nouveaux_patients_reanimation': 'elastic_net',
                      'new_deaths': 'rf'}
 
