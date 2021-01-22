@@ -7,7 +7,6 @@ from dsbox.operators.data_unit import DataInputUnit
 from dsbox.utils import write_object_file, load_object_file
 from dsbox.ml.feature_selection.greedy import greedy_feature_selection
 from eli5.sklearn import PermutationImportance
-from lightgbm import LGBMRegressor
 
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
@@ -33,12 +32,6 @@ def create_model(model_type='elastic_net'):
 
     if model_type == 'elastic_net':
         return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
-
-    if model_type == 'lgbm_200':
-        return LGBMRegressor(n_estimators=200, learning_rate=0.01)
-
-    if model_type == 'lgbm_300':
-        return LGBMRegressor(n_estimators=300, learning_rate=0.01)
 
 
 def feature_contribution(model, features, model_type='elastic_net'):
