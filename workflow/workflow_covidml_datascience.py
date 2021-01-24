@@ -98,7 +98,7 @@ for target in targets:
                                                      pandas_write_function_name='to_csv', index=False)
 
     task_model_selection = DataOperator(operation_function=model_selection,
-                                        params={'split_date': split_date_feature_selection_test,
+                                        params={'split_date': split_date_feature_selection_validation,
                                                 'model_list': model_types,
                                                 'target': target,
                                                 'features': cols_to_keep,
