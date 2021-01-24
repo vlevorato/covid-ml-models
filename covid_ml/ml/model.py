@@ -167,7 +167,7 @@ def model_selection(dataframe, model_list, date_col='date', split_date=None, max
         model.fit(X_train[features], X_train[target])
         y_test = model.predict(X_test[features])
         if cum_sum:
-            score = score_func(X_test[target].cumsum(), np.cumsum(y_test))
+            score = score_func([X_test[target].cumsum().values[-1]], [np.cumsum(y_test)[-1]])
         else:
             score = score_func(X_test[target], y_test)
 
