@@ -9,7 +9,7 @@ from dsbox.utils import write_object_file, load_object_file
 from dsbox.ml.feature_selection.greedy import greedy_feature_selection
 from eli5.sklearn import PermutationImportance
 
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, ExtraTreesRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
 from sklearn.metrics import make_scorer
 from sklearn.neighbors import KNeighborsRegressor
@@ -18,11 +18,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 def create_model(model_type='elastic_net'):
     if model_type == 'rf':
-        return RandomForestRegressor(n_estimators=200,
+        return RandomForestRegressor(n_estimators=300,
                                      min_samples_leaf=2,
                                      max_depth=15,
                                      max_features=0.8,
+                                     max_samples=0.8,
                                      n_jobs=1)
+
+    if model_type == 'et':
+        return ExtraTreesRegressor(n_estimators=300, min_samples_leaf=2, max_depth=7, max_features=0.8, n_jobs=1)
 
     if model_type == 'gbt':
         return GradientBoostingRegressor(n_estimators=500,
@@ -33,7 +37,7 @@ def create_model(model_type='elastic_net'):
         return BayesianRidge(normalize=True)
 
     if model_type == 'elastic_net':
-        return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
+        return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.95)
 
     if model_type == 'knn':
         return KNeighborsRegressor(n_neighbors=120, p=3, leaf_size=120, n_jobs=1)
