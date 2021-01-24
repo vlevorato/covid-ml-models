@@ -224,7 +224,10 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
             cols_selected = permutation_importance_select_features(features, model, X_test, target)
         if method == 'filter_zero_coeff':
             df_features_contrib = feature_contribution(model, features, model_type=model_type)
-            cols_selected = list(df_features_contrib[df_features_contrib['importance'] > 0]['feature'])
+            if len(df_features_contrib.dropna()) == 0:
+                cols_selected = features
+            else:
+                cols_selected = list(df_features_contrib[df_features_contrib['importance'] > 0]['feature'])
 
         model.fit(X_train[cols_selected], X_train[target])
         new_score = score_func(X_test[target], model.predict(X_test[cols_selected]))

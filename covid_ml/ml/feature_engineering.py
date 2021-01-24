@@ -86,9 +86,9 @@ def create_features(dataframe, date_col='date', predict_period_days=15, predict_
 
     for col in cols_to_shift:
         for i in range(1, len(shift_rolling_windows)):
-            df_roll_shift['diff_mean_3_{}_{}_{}'.format(col, shift_rolling_windows[i - 1], shift_rolling_windows[i])] = \
-                df_roll_shift['mean_3_{}_{}'.format(col, shift_rolling_windows[i - 1])] - df_roll_shift[
-                    'mean_3_{}_{}'.format(col, shift_rolling_windows[i])]
+            df_roll_shift['diff_mean_7_{}_{}_{}'.format(col, shift_rolling_windows[i - 1], shift_rolling_windows[i])] = \
+                df_roll_shift['mean_7_{}_{}'.format(col, shift_rolling_windows[i - 1])] - df_roll_shift[
+                    'mean_7_{}_{}'.format(col, shift_rolling_windows[i])]
 
     dataframe = dataframe.join(df_roll_shift)
 

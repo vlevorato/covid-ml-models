@@ -9,7 +9,9 @@ cols_to_shift = ['prop_cases_vs_tests',
 
 ref_ops = {'mean': 'moyenne',
            'median': 'médiane',
-           'std': 'écart-type'}
+           'std': 'écart-type',
+           'min': 'minimum',
+           'max': 'maximum'}
 
 ref_cols = {'new_cases_2': 'Nouveaux cas',
             'nouveaux_patients_hospitalises': 'Nouveaux patients hospitalisés',
@@ -23,16 +25,16 @@ ref_cols = {'new_cases_2': 'Nouveaux cas',
 
 ref_features = {}
 
-agg_ops = ['mean', 'median', 'std']
-rolling_windows = [3, 7, 15, 30]
+agg_ops = ['mean', 'median', 'std', 'min', 'max']
+rolling_windows = [3, 7, 14, 28]
 shift_rolling_windows = [14, 21, 28]
 
 cols_to_keep = []
 for col in cols_to_shift:
     for i in range(1, len(shift_rolling_windows)):
-        feature = 'diff_mean_3_' + col + '_' + str(shift_rolling_windows[i - 1]) + '_' + str(shift_rolling_windows[i])
+        feature = 'diff_mean_7_' + col + '_' + str(shift_rolling_windows[i - 1]) + '_' + str(shift_rolling_windows[i])
         cols_to_keep.append(feature)
-        ref_features[feature] = '{} - écart entre la moyenne sur 3j (-{}j) et (-{}j)'.format(ref_cols[col],
+        ref_features[feature] = '{} - écart entre la moyenne sur 7j (-{}j) et (-{}j)'.format(ref_cols[col],
                                                                                              shift_rolling_windows[
                                                                                                  i - 1],
                                                                                              shift_rolling_windows[i])
