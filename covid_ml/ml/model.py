@@ -171,10 +171,13 @@ def model_selection(dataframe, model_list, date_col='date', split_date=None, max
         else:
             score = score_func(X_test[target], y_test)
 
+        print("Score: {}".format(score))
+
         if best_score is None or score < best_score:
             best_score = score
             best_model_type = model_type
 
+    print("Best model: {}".format(best_model_type))
     df_best_model_type = pd.DataFrame({'target': [target], 'model_type': [best_model_type], 'score': [best_score]})
     return df_best_model_type
 
