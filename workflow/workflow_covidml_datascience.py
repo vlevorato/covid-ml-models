@@ -240,6 +240,9 @@ task_dummy_start_predict = DummyOperator(task_id='Start_predictions',
                                          dag=dag)
 
 for target in targets:
+    input_model_selection_unit = DataInputFileUnit(config_variables['COVIDML_MODEL_PATH']
+                                                   + 'model_type_{}.csv'.format(target))
+
     input_features_selection_unit = DataInputFileUnit(data_paths['features_path']
                                                       + 'features_{}.csv'.format(target))
 
