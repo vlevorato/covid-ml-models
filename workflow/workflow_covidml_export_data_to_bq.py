@@ -6,8 +6,8 @@ from dsbox.operators.data_unit import DataInputFileUnit
 
 from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
-from covid_ml.ml.ml_metadata import target_model_dict, ref_features, ref_models, ref_cols
-from covid_ml.utils.bq_generation import generate_data_viz_query, generate_data_viz_raw_query, generate_referential
+from covid_ml.ml.ml_metadata import ref_features, ref_models, ref_cols, targets
+from covid_ml.utils.bq_generation import generate_data_viz_query, generate_referential
 from covid_ml.utils.bq_units import DataOutputBigQueryUnit
 from covid_ml.utils.io import dummy_function, get_bq_query, export_data
 
@@ -34,37 +34,38 @@ task_export_historical_data = DataOperator(operation_function=dummy_function,
 
 task_group_export_predictions = TaskGroup("Export_predictions", dag=dag)
 
-for target, model_type in target_model_dict.items():
+for target in targets:
+    input_model_selection_unit = DataInputFileUnit(config_variables['COVIDML_MODEL_PATH']
+                                                   + 'model_type_{}.csv'.format(target))
     input_predictions_unit = DataInputFileUnit(data_paths['intermediate_data_path'] +
-                                               'X_predict_{}_{}.parquet'.format(model_type, target),
+                                               'X_predict_{}.parquet'.format(target),
                                                pandas_read_function_name='read_parquet')
     output_pred_bq_unit = DataOutputBigQueryUnit(table_id='{}.predictions'.format(bq_dataset),
                                                  path_json_key=path_json_key,
                                                  drop_table=False)
     task_export_predictions_data = DataOperator(operation_function=export_data,
-                                                params={'model_type': model_type,
+                                                params={'model_type_data_unit': input_model_selection_unit,
                                                         'target': target},
                                                 input_unit=input_predictions_unit,
                                                 output_unit=output_pred_bq_unit,
                                                 task_group=task_group_export_predictions,
-                                                task_id='Export_predictions_{}_{}'.format(model_type, target),
+                                                task_id='Export_predictions_{}'.format(target),
                                                 dag=dag)
 
     input_features_contrib_unit = DataInputFileUnit(data_paths['features_path']
-                                                    + 'features_contrib_{}_{}.parquet'.format(model_type, target),
+                                                    + 'features_contrib_{}.parquet'.format(target),
                                                     pandas_read_function_name='read_parquet')
     output_features_contrib_bq_unit = DataOutputBigQueryUnit(table_id='{}.feature_contribution'.format(bq_dataset),
                                                              path_json_key=path_json_key,
                                                              drop_table=False)
 
     task_export_features_contribution_data = DataOperator(operation_function=export_data,
-                                                          params={'model_type': model_type,
+                                                          params={'model_type_data_unit': input_model_selection_unit,
                                                                   'target': target},
                                                           input_unit=input_features_contrib_unit,
                                                           output_unit=output_features_contrib_bq_unit,
                                                           task_group=task_group_export_predictions,
-                                                          task_id='Export_features_contribution_{}_{}'.format(
-                                                              model_type, target),
+                                                          task_id='Export_features_contribution_{}'.format(target),
                                                           dag=dag)
 
     task_export_predictions_data.set_downstream(task_export_features_contribution_data)
@@ -74,7 +75,7 @@ task_export_historical_data.set_downstream(task_group_export_predictions)
 data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_table_template',
                                                             config_variables['COVIDML_PROJECT_PATH']),
                                                bq_dataset=config_variables['COVIDML_BQ_DATASET'],
-                                               targets=target_model_dict.keys())
+                                               targets=targets)
 
 data_viz_raw_table_query = get_bq_query('create_data_viz_raw_table',
                                         config_variables['COVIDML_PROJECT_PATH']).format(

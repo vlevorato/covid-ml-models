@@ -45,10 +45,8 @@ for col in cols_to_shift:
                 ref_features[feature] = '{} - {} sur {}j (-{}j)'.format(ref_cols[col], ref_ops[agg_op], rolling_window,
                                                                         shift_rolling_window)
 
-target_model_dict = {'new_cases_2': 'rf',
-                     'nouveaux_patients_hospitalises': 'elastic_net',
-                     'nouveaux_patients_reanimation': 'elastic_net',
-                     'new_deaths': 'rf'}
+model_types = ['gbt', 'rf', 'bridge', 'elastic_net', 'knn']
+targets = ['new_cases_2', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
 
 target_feature_selection_method_dict = {'new_cases_2': 'filter_zero_coeff',
                                         'nouveaux_patients_hospitalises': 'filter_zero_coeff',
@@ -56,9 +54,8 @@ target_feature_selection_method_dict = {'new_cases_2': 'filter_zero_coeff',
                                         'new_deaths': 'filter_zero_coeff'}
 
 ref_models = {'rf': 'Random Forest',
-              'gbt': 'Gradient Tree Boosting (sklearn)',
+              'gbt': 'Gradient Tree Boosting',
               'elastic_net': 'Elastic Net',
               'bridge': 'Bayesian Ridge',
-              'lgbm_200': 'Gradient Tree Boosting (LGBM)',
-              'lgbm_300': 'Gradient Tree Boosting (LGBM)'
+              'knn': 'K-Nearest Neighbors'
               }

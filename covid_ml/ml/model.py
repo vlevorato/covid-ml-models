@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pandas as pd
+import numpy as np
 from dsbox.ml.metrics import root_mean_squared_error
 from dsbox.operators.data_unit import DataInputUnit
 from dsbox.utils import write_object_file, load_object_file
@@ -11,6 +12,7 @@ from eli5.sklearn import PermutationImportance
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import BayesianRidge, ElasticNet
 from sklearn.metrics import make_scorer
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 
 
@@ -33,24 +35,34 @@ def create_model(model_type='elastic_net'):
     if model_type == 'elastic_net':
         return ElasticNet(normalize=True, max_iter=100000, l1_ratio=0.9)
 
+    if model_type == 'knn':
+        return KNeighborsRegressor(n_neighbors=120, p=3, leaf_size=120, n_jobs=1)
+
 
 def feature_contribution(model, features, model_type='elastic_net'):
     linear_models_type = ['elastic_net', 'bridge']
     ensemble_models_type = ['rf', 'gbt']
 
-    df_features_contrib = pd.DataFrame()
-
     if model_type in linear_models_type:
         df_features_contrib = pd.DataFrame({'feature': features, 'importance': model.coef_})
+        return df_features_contrib
 
     if model_type in ensemble_models_type:
         df_features_contrib = pd.DataFrame(
             {'feature': features, 'importance': model.feature_importances_})
+        return df_features_contrib
+
+    df_features_contrib = pd.DataFrame(
+        {'feature': features, 'importance': [np.nan] * len(features)})
 
     return df_features_contrib
 
 
-def extract_feature_contribution(df_features, model_type='elastic_net', model_path=None, target=None):
+def extract_feature_contribution(df_features, model_type_data_unit=None, model_path=None, target=None):
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
+
     model = load_object_file(model_path + generate_model_filename(model_type, target))
     df_features_contrib = feature_contribution(model, df_features['features'], model_type=model_type)
 
@@ -75,7 +87,11 @@ def prepare_data(dataframe, features=None):
     return dataframe
 
 
-def train(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None, split_date=None):
+def train(dataframe, date_col='date', model_type_data_unit=None, model_path=None, target=None, features=None, split_date=None):
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
+
     features = check_features(features)
     dataframe = prepare_data(dataframe, features=features)
 
@@ -95,8 +111,12 @@ def train(dataframe, date_col='date', model_type='rf', model_path=None, target=N
     write_object_file(model_path, model)
 
 
-def predict(dataframe, date_col='date', model_type='rf', model_path=None, target=None, features=None,
+def predict(dataframe, date_col='date', model_type_data_unit=None, model_path=None, target=None, features=None,
             y_pred_col='y_pred', split_date=None):
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
+
     features = check_features(features)
     dataframe = prepare_data(dataframe, features=features)
 
@@ -123,6 +143,42 @@ def predict(dataframe, date_col='date', model_type='rf', model_path=None, target
     return X_to_predict[[date_col, y_pred_col]]
 
 
+def model_selection(dataframe, model_list, date_col='date', split_date=None, max_date=None, target=None, features=None,
+                    score_func=root_mean_squared_error, cum_sum=False):
+    dataframe = prepare_data(dataframe, features=features)
+    X = dataframe.dropna(subset=features + [target])
+
+    X_train = X[X[date_col] < split_date]
+    X_test = X[X[date_col] >= split_date]
+    if max_date is not None:
+        X_test = X_test[X_test[date_col] < max_date]
+
+    print("Train dataset min: {}".format(X_train[date_col].min()))
+    print("Train dataset max: {}".format(X_train[date_col].max()))
+    print("Test dataset min: {}".format(X_test[date_col].min()))
+    print("Test dataset max: {}".format(X_test[date_col].max()))
+
+    best_score = None
+    best_model_type = None
+
+    for model_type in model_list:
+        print("Testing: {}".format(model_type))
+        model = create_model(model_type)
+        model.fit(X_train[features], X_train[target])
+        y_test = model.predict(X_test[features])
+        if cum_sum:
+            score = score_func(X_test[target].cumsum(), np.cumsum(y_test))
+        else:
+            score = score_func(X_test[target], y_test)
+
+        if best_score is None or score < best_score:
+            best_score = score
+            best_model_type = model_type
+
+    df_best_model_type = pd.DataFrame({'target': [target], 'model_type': [best_model_type], 'score': [best_score]})
+    return df_best_model_type
+
+
 def permutation_importance_select_features(cols_to_test, model, df, target, score_func=root_mean_squared_error):
     scorer = make_scorer(score_func)
     perm = PermutationImportance(model, scoring=scorer, n_iter=3).fit(df[cols_to_test], df[target])
@@ -132,8 +188,12 @@ def permutation_importance_select_features(cols_to_test, model, df, target, scor
     return list(perm_importance['feature'].values)
 
 
-def feature_selection(dataframe, date_col='date', split_date=None, max_date=None, model_type='elastic_net',
+def feature_selection(dataframe, date_col='date', split_date=None, max_date=None, model_type_data_unit=None,
                       method='greedy', score_func=root_mean_squared_error, target=None, features=None):
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
+
     dataframe = prepare_data(dataframe, features=features)
     X = dataframe.dropna(subset=features + [target])
 
@@ -179,13 +239,17 @@ def feature_selection(dataframe, date_col='date', split_date=None, max_date=None
     return df_features
 
 
-def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type='rf', target=None,
+def check_if_new_features_gives_better_model(data_unit, date_col='date', model_type_data_unit=None, target=None,
                                              current_features=None, candidates_features=None, split_date=None,
                                              score_func=root_mean_squared_error, task_id_update=None,
                                              task_id_skip=None):
     if not os.path.isfile(current_features.input_path):
         print("No features present.")
         return task_id_update
+
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
 
     dataframe = data_unit.read_data()
     current_features = check_features(current_features)

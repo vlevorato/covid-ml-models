@@ -6,7 +6,11 @@ def dummy_function(dataframe):
     return dataframe
 
 
-def export_data(dataframe, model_type=None, target=None):
+def export_data(dataframe, model_type_data_unit=None, target=None):
+    df_model_type = model_type_data_unit.read_data()
+    model_type = df_model_type['model_type'].values[0]
+    print("Model type: {}".format(model_type))
+
     dataframe['model'] = model_type
     dataframe['target'] = target
     dataframe['date_export'] = datetime.now()
