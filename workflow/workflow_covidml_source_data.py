@@ -39,6 +39,15 @@ task_datagov_tests_import = DataOperator(operation_function=dummy_function,
                                          task_id='Import_DataGovTests_data',
                                          dag=dag)
 
+input_datagov_kpis_data_unit = DataInputFileUnit(data_paths['source_data_gov_kpis'])
+output_datagov_kpis_data_unit = DataOutputFileUnit(data_paths['raw_data_path'] + 'datagov_kpis_data.csv', index=False)
+task_datagov_kpis_import = DataOperator(operation_function=dummy_function,
+                                         input_unit=input_datagov_kpis_data_unit,
+                                         output_unit=output_datagov_kpis_data_unit,
+                                         task_id='Import_DataGovKpis_data',
+                                         dag=dag)
+
 task_start_import.set_downstream(task_owid_import)
 task_start_import.set_downstream(task_datagov_import)
 task_start_import.set_downstream(task_datagov_tests_import)
+task_start_import.set_downstream(task_datagov_kpis_import)

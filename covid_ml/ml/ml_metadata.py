@@ -47,13 +47,13 @@ for col in cols_to_shift:
                 ref_features[feature] = '{} - {} sur {}j (-{}j)'.format(ref_cols[col], ref_ops[agg_op], rolling_window,
                                                                         shift_rolling_window)
 
-model_types = ['gbt', 'rf', 'et', 'bridge', 'elastic_net', 'knn']
+model_types = ['gbt', 'rf', 'et', 'bridge'] #, 'elastic_net', 'knn']
 targets = ['new_cases_2', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
 
-target_feature_selection_method_dict = {'new_cases_2': 'filter_zero_coeff',
-                                        'nouveaux_patients_hospitalises': 'filter_zero_coeff',
-                                        'nouveaux_patients_reanimation': 'filter_zero_coeff',
-                                        'new_deaths': 'filter_zero_coeff'}
+target_feature_selection_method_dict = {'new_cases_2': 'permutation_importance',
+                                        'nouveaux_patients_hospitalises': 'permutation_importance',
+                                        'nouveaux_patients_reanimation': 'permutation_importance',
+                                        'new_deaths': 'permutation_importance'}
 
 ref_models = {'rf': 'Random Forest',
               'gbt': 'Gradient Tree Boosting',

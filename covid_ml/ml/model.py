@@ -45,7 +45,7 @@ def create_model(model_type='elastic_net'):
 
 def feature_contribution(model, features, model_type='elastic_net'):
     linear_models_type = ['elastic_net', 'bridge']
-    ensemble_models_type = ['rf', 'gbt']
+    ensemble_models_type = ['rf', 'gbt', 'et']
 
     if model_type in linear_models_type:
         df_features_contrib = pd.DataFrame({'feature': features, 'importance': model.coef_})
