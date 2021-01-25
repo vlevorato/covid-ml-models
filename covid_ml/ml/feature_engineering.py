@@ -52,7 +52,7 @@ def create_features(dataframe, date_col='date', predict_period_days=15, predict_
 
     now_date = datetime.now().date()
     dates_to_predict = []
-    for day_shift in range(1, predict_period_days):
+    for day_shift in range(0, predict_period_days):
         dates_to_predict.append(now_date + timedelta(days=day_shift))
 
     if predict_period_week_round:
