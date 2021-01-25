@@ -34,7 +34,7 @@ def prepare_data(dataframe, data_file=None, date_col='date'):
         dataframe = preprocess_kpis(dataframe, date_col)
 
     dataframe['date'] = pd.to_datetime(dataframe[date_col])
-    dataframe = dataframe.resample('D', on=date_col).mean().reset_index(drop=False)
+    dataframe = dataframe.resample('D', on='date').mean().reset_index(drop=False)
     dataframe = dataframe.interpolate(limit_area='inside')
 
     return dataframe
