@@ -15,18 +15,12 @@ def generate_data_viz_query(template_query, joining_field='date',
 
     pre_query = pre_query[:-1]
 
-    select_query = ''
-    for target in targets:
-        select_query += 'predictions_data_{0}.* EXCEPT({1}), \n'.format(target, joining_field)
-
-    select_query = select_query[:-1]
-
     join_query = ''
     for target in targets:
         join_query += 'FULL OUTER JOIN predictions_data_{}\n'.format(target)
-        join_query += 'ON historical_data.{0} = predictions_data_{1}.{0}\n'.format(joining_field, target)
+        join_query += 'USING ({})\n'.format(joining_field)
 
-    query = template_query.format(bq_dataset, pre_query, select_query, join_query)
+    query = template_query.format(bq_dataset, pre_query, join_query)
     return query
 
 
@@ -45,18 +39,12 @@ def generate_data_viz_raw_query(template_query, joining_field='date',
 
     pre_query = pre_query[:-1]
 
-    select_query = ''
-    for target in targets:
-        select_query += 'predictions_data_{0}.* EXCEPT({1}), \n'.format(target, joining_field)
-
-    select_query = select_query[:-1]
-
     join_query = ''
     for target in targets:
         join_query += 'FULL OUTER JOIN predictions_data_{}\n'.format(target)
-        join_query += 'ON historical_data.{0} = predictions_data_{1}.{0}\n'.format(joining_field, target)
+        join_query += 'USING ({})\n'.format(joining_field)
 
-    query = template_query.format(bq_dataset, pre_query, select_query, join_query)
+    query = template_query.format(bq_dataset, pre_query, join_query)
     return query
 
 
