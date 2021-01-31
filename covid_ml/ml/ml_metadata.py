@@ -47,7 +47,7 @@ for col in cols_to_shift:
                 ref_features[feature] = '{} - {} sur {}j (-{}j)'.format(ref_cols[col], ref_ops[agg_op], rolling_window,
                                                                         shift_rolling_window)
 
-model_types = ['gbt', 'rf', 'et', 'bridge'] #, 'elastic_net', 'knn']
+model_types = ['gbt', 'rf', 'et', 'bridge', 'elastic_net']  #, 'knn']
 targets = ['new_cases_2', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
 
 target_feature_selection_method_dict = {'new_cases_2': 'permutation_importance',
