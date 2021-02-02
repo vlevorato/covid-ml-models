@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from covid_ml.config.env_vars import config_variables
 
-dag_start_date = datetime(2020, 12, 25)
+dag_start_date = datetime(2020, 12, 1)
 
 # airflow common dag args
 dag_args = {
