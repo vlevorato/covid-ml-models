@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.utils.task_group import TaskGroup
+from dsbox.operators.bq_unit import DataOutputBigQueryUnit
 from dsbox.operators.data_operator import DataOperator
 from dsbox.operators.data_unit import DataInputFileUnit
 
@@ -8,7 +9,6 @@ from covid_ml.config.commons import dag_args, data_paths
 from covid_ml.config.env_vars import config_variables
 from covid_ml.ml.ml_metadata import ref_features, ref_models, ref_cols, targets
 from covid_ml.utils.bq_generation import generate_data_viz_query, generate_referential
-from covid_ml.utils.bq_units import DataOutputBigQueryUnit
 from covid_ml.utils.io import dummy_function, get_bq_query, export_data
 
 dag = DAG(dag_id='covidml_export_data_to_bq',
