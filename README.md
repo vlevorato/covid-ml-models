@@ -4,9 +4,7 @@ Simple ML approach to predict insights about Covid-19 epidemic in France. Workfl
 
 Project made by [V. Levorato](https://www.linkedin.com/in/vlevorato/).
 
-Study work can be found in the notebook below:
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/168HRgtbY5-ZvE3jCVbEeR_pHfjieNK42?usp=sharing) Orléans Tech Talks #45 study notebook
+Study work can be found in the notebook: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/168HRgtbY5-ZvE3jCVbEeR_pHfjieNK42?usp=sharing) *Orléans Tech Talks #45 study notebook*
 
 
 Dashboard with results is available here (french language): [Data Studio dashboard with Covid-19 KPIs](https://datastudio.google.com/reporting/819027cb-9f5f-4ad0-af7d-2643659dd997)
