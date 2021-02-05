@@ -23,3 +23,10 @@ data_paths = {
     'features_candidates_path': config_variables['COVIDML_DATA_PATH'] + 'features_candidates/'
 }
 
+"""
+Web pages sources:
+https://ourworldindata.org/coronavirus-data
+https://www.data.gouv.fr/fr/datasets/donnees-relatives-aux-resultats-des-tests-virologiques-covid-19/
+https://www.data.gouv.fr/fr/datasets/donnees-relatives-a-lepidemie-de-covid-19-en-france-vue-densemble/
+https://www.data.gouv.fr/fr/datasets/indicateurs-de-suivi-de-lepidemie-de-covid-19/
+"""

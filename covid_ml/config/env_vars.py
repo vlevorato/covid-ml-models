@@ -2,7 +2,7 @@ from airflow.models import Variable
 import os
 
 """
-Using dictionary for config variables to be able to change way to assign values.
+Using dictionary for config variables to be able to change the way to assign values.
 (by default, using environment variables).
 """
 
