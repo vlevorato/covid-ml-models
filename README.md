@@ -9,6 +9,6 @@ Study work can be found in the notebook: [![Open In Colab](https://colab.researc
 
 Dashboard with results is available here (french language): [Data Studio dashboard with Covid-19 KPIs](https://datastudio.google.com/reporting/819027cb-9f5f-4ad0-af7d-2643659dd997)
 
-Explanation about the whole project can be found in the [Orléans Tech Talks](https://www.meetup.com/fr-FR/Orleans-Tech-Talks/) #45 - second session (french language):
+Explanation about the whole project can be found in the [Orléans Tech Talks](https://www.meetup.com/fr-FR/Orleans-Tech-Talks/) #45 - second session (french language) below, and into my Medium article [How to build a (small) homemade machine learning model to predict Covid indicators for France](https://vincent-levorato.medium.com/how-to-build-a-small-homemade-machine-learning-model-to-predict-covid-indicators-for-france-c9fc1ed19107?sk=576afa3de0e5b812c77c946e178c45d0).
 
 [![Orléans Tech Talks #45](https://img.youtube.com/vi/yPZuc0HFmUs/0.jpg)](https://www.youtube.com/embed/yPZuc0HFmUs?start=2526)
