@@ -91,7 +91,8 @@ def prepare_data(dataframe, features=None):
     return dataframe
 
 
-def train(dataframe, date_col='date', model_type_data_unit=None, model_path=None, target=None, features=None, split_date=None):
+def train(dataframe, date_col='date', model_type_data_unit=None, model_path=None, target=None, features=None,
+          split_date=None):
     df_model_type = model_type_data_unit.read_data()
     model_type = df_model_type['model_type'].values[0]
     print("Model type: {}".format(model_type))
