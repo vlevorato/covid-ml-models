@@ -1,5 +1,5 @@
 cols_to_shift = ['prop_cases_vs_tests',
-                 'new_cases_2',
+                 'new_cases',
                  'new_tests',
                  'nouveaux_patients_reanimation',
                  'nouveaux_patients_hospitalises',
@@ -13,7 +13,7 @@ ref_ops = {'mean': 'moyenne',
            'min': 'minimum',
            'max': 'maximum'}
 
-ref_cols = {'new_cases_2': 'Nouveaux cas',
+ref_cols = {'new_cases': 'Nouveaux cas',
             'nouveaux_patients_hospitalises': 'Nouveaux patients hospitalisés',
             'nouveaux_patients_reanimation': 'Nouveaux patients en réanimation',
             'new_deaths': 'Nouveaux décès',
@@ -48,9 +48,9 @@ for col in cols_to_shift:
                                                                         shift_rolling_window)
 
 model_types = ['gbt', 'rf', 'et']  # , 'bridge', 'elastic_net' , 'knn']
-targets = ['new_cases_2', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
+targets = ['new_cases', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
 
-target_feature_selection_method_dict = {'new_cases_2': 'permutation_importance',
+target_feature_selection_method_dict = {'new_cases': 'permutation_importance',
                                         'nouveaux_patients_hospitalises': 'permutation_importance',
                                         'nouveaux_patients_reanimation': 'permutation_importance',
                                         'new_deaths': 'permutation_importance'}

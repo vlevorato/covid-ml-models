@@ -62,7 +62,9 @@ def create_features(dataframe, date_col='date', predict_period_days=15, predict_
     dataframe['new_cases_2'] = dataframe['new_cases_2'].map(lambda x: np.nan if x <= 0 else x)
     dataframe['new_cases_2'] = dataframe['new_cases_2'].interpolate()
 
-    dataframe['prop_cases_vs_tests'] = dataframe['new_cases_2'] / dataframe['new_tests'].shift(1)
+    # Data Gov fr data unreliable
+    # dataframe['prop_cases_vs_tests'] = dataframe['new_cases_2'] / dataframe['new_tests'].shift(1)
+    dataframe['prop_cases_vs_tests'] = dataframe['new_cases'] / dataframe['new_tests'].shift(1)
     dataframe['new_patients_gueris'] = dataframe['total_patients_gueris'] - \
                                        dataframe['total_patients_gueris'].shift(1)
 
