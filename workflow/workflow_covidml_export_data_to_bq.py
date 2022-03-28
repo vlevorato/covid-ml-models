@@ -75,7 +75,7 @@ task_export_historical_data.set_downstream(task_group_export_predictions)
 data_viz_table_query = generate_data_viz_query(get_bq_query('create_data_viz_table_template',
                                                             config_variables['COVIDML_PROJECT_PATH']),
                                                bq_dataset=config_variables['COVIDML_BQ_DATASET'],
-                                               targets=targets)
+                                               targets=targets + ['new_cases_2'])
 
 data_viz_raw_table_query = get_bq_query('create_data_viz_raw_table',
                                         config_variables['COVIDML_PROJECT_PATH']).format(
