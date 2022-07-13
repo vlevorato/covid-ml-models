@@ -39,7 +39,6 @@ def prepare_data(dataframe, data_file=None, date_col='date'):
     if data_file == 'owid_data':
         columns_to_process = list(dataframe.columns)
         columns_to_process.remove('date')
-        columns_to_process.remove(date_col)
 
         for col in columns_to_process:
             dataframe[f'{col}_shift'] = dataframe[col].shift(1)
