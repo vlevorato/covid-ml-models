@@ -8,7 +8,7 @@ def generate_data_viz_query(template_query, joining_field='date',
         fields = str(fields)
         fields = fields.replace('[', '')
         fields = fields.replace(']', '')
-        from_table = '`{2}.predictions_last` as predictions_last'
+        from_table = '`{}.predictions_last` as predictions_last'.format(bq_dataset)
         if target == 'hosp_patients':
             from_table = '(SELECT date, model, target, date_export, ' \
                          "IF(target='nouveaux_patients_hospitalises', y_pred * 10, y_pred) as y_pred" \
