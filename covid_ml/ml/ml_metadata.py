@@ -51,6 +51,11 @@ for col in cols_to_shift:
 
 model_types = ['gbt', 'rf', 'et']  # , 'bridge', 'elastic_net' , 'knn']
 targets = ['new_cases', 'hosp_patients', 'icu_patients', 'new_deaths']
+targets_bq_mapping = {'new_cases': ['new_cases', 'new_cases_2'],
+                      'hosp_patients': ['hosp_patients', 'nouveaux_patients_hospitalises'],
+                      'icu_patients': ['icu_patients', 'nouveaux_patients_reanimation'],
+                      'new_deaths': ['new_deaths']
+                      }
 
 target_feature_selection_method_dict = {'new_cases': 'permutation_importance',
                                         'hosp_patients': 'permutation_importance',

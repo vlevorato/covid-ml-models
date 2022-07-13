@@ -4,14 +4,17 @@ import pandas as pd
 def generate_data_viz_query(template_query, joining_field='date',
                             bq_dataset=None, targets=None):
     pre_query = 'WITH'
-    for target in targets:
+    for target, fields in targets.items():
+        fields = str(fields)
+        fields = fields.replace('[', '')
+        fields = fields.replace(']', '')
         pre_query += ' predictions_data_{0} AS ' \
                      '( SELECT ' \
                      '{1}, ' \
                      'CAST(AVG(y_pred) AS INT64) as {0}_pred ' \
                      'FROM `{2}.predictions_last` as predictions_last ' \
-                     "WHERE target = '{0}' " \
-                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, bq_dataset)
+                     "WHERE target in ({3}) " \
+                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, bq_dataset, fields)
 
     pre_query = pre_query[:-1]
 
