@@ -8,11 +8,16 @@ def generate_data_viz_query(template_query, joining_field='date',
         fields = str(fields)
         fields = fields.replace('[', '')
         fields = fields.replace(']', '')
+        from_table = '`{2}.predictions_last` as predictions_last'
+        if target == 'hosp_patients':
+            from_table = '(SELECT date, model, target, date_export, ' \
+                         'IF(target="nouveaux_patients_hospitalises", y_pred * 10, y_pred) as y_pred' \
+                         ' FROM `{2}.predictions_last`) as predictions_last'
         pre_query += ' predictions_data_{0} AS ' \
                      '( SELECT ' \
                      '{1}, ' \
                      'CAST(AVG(y_pred) AS INT64) as {0}_pred ' \
-                     'FROM `{2}.predictions_last` as predictions_last ' \
+                     'FROM ' + from_table + ' ' \
                      "WHERE target in ({3}) " \
                      "GROUP BY predictions_last.{1} ),".format(target, joining_field, bq_dataset, fields)
 
