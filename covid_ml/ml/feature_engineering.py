@@ -35,7 +35,22 @@ def prepare_data(dataframe, data_file=None, date_col='date'):
 
     dataframe['date'] = pd.to_datetime(dataframe[date_col])
     dataframe = dataframe.resample('D', on='date').mean().reset_index(drop=False)
+
+    if data_file == 'owid_data':
+        columns_to_process = list(dataframe.columns)
+        columns_to_process.remove('date')
+        columns_to_process.remove(date_col)
+
+        for col in columns_to_process:
+            dataframe[f'{col}_shift'] = dataframe[col].shift(1)
+            dataframe[f'{col}_shift'] = dataframe[f'{col}_shift'].map(lambda x: 1 if x > 0 else 0)
+            dataframe[col] = dataframe[col] * dataframe[f'{col}_shift']
+            del dataframe[f'{col}_shift']
+
+            dataframe[col] = dataframe[col].replace(0, np.nan)
+
     dataframe = dataframe.interpolate(limit_area='inside')
+    dataframe = dataframe.backfill()
 
     return dataframe
 
@@ -51,22 +66,7 @@ def create_features(dataframe, date_col='date', predict_period_days=15, predict_
                     cols_to_shift=None, agg_ops=None, rolling_windows=None, shift_rolling_windows=None):
     dataframe = dataframe.sort_values(date_col)
 
-    dataframe['new_tests_source'] = dataframe['new_tests']
-    dataframe['new_tests'] = dataframe[['new_tests', 'T']].mean(axis=1)
-
-    dataframe['reproduction_rate_source'] = dataframe['reproduction_rate']
-    dataframe['reproduction_rate'] = dataframe[['reproduction_rate', 'R']].mean(axis=1)
-
-    dataframe['total_cas_confirmes_1'] = dataframe['total_cas_confirmes'].shift(1)
-    dataframe['new_cases_2'] = dataframe['total_cas_confirmes'] - dataframe['total_cas_confirmes_1']
-    dataframe['new_cases_2'] = dataframe['new_cases_2'].map(lambda x: np.nan if x <= 0 else x)
-    dataframe['new_cases_2'] = dataframe['new_cases_2'].interpolate()
-
-    # Data Gov fr data unreliable
-    # dataframe['prop_cases_vs_tests'] = dataframe['new_cases_2'] / dataframe['new_tests'].shift(1)
     dataframe['prop_cases_vs_tests'] = dataframe['new_cases'] / dataframe['new_tests'].shift(1)
-    dataframe['new_patients_gueris'] = dataframe['total_patients_gueris'] - \
-                                       dataframe['total_patients_gueris'].shift(1)
 
     now_date = datetime.now().date()
     dates_to_predict = []

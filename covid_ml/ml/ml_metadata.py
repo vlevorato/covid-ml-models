@@ -1,11 +1,12 @@
 cols_to_shift = ['prop_cases_vs_tests',
                  'new_cases',
                  'new_tests',
-                 'nouveaux_patients_reanimation',
-                 'nouveaux_patients_hospitalises',
-                 'new_patients_gueris',
+                 'icu_patients',
+                 'hosp_patients',
                  'reproduction_rate',
-                 'new_deaths']
+                 'new_deaths',
+                 'people_vaccinated',
+                 'people_fully_vaccinated']
 
 ref_ops = {'mean': 'moyenne',
            'median': 'médiane',
@@ -14,13 +15,14 @@ ref_ops = {'mean': 'moyenne',
            'max': 'maximum'}
 
 ref_cols = {'new_cases': 'Nouveaux cas',
-            'nouveaux_patients_hospitalises': 'Nouveaux patients hospitalisés',
-            'nouveaux_patients_reanimation': 'Nouveaux patients en réanimation',
+            'hosp_patients': 'Nouveaux patients hospitalisés',
+            'icu_patients': 'Nouveaux patients en réanimation',
             'new_deaths': 'Nouveaux décès',
             'prop_cases_vs_tests': 'Proportion de cas en fonction des tests',
             'new_tests': 'Nouveaux tests',
-            'new_patients_gueris': 'Nouveaux patients guéris',
-            'reproduction_rate': 'Taux de reproduction (Rt)'
+            'reproduction_rate': 'Taux de reproduction (Rt)',
+            'people_vaccinated': 'Population avec au moins une dose de vaccin',
+            'people_fully_vaccinated': 'Population avec un schéma vaccinal complet'
             }
 
 ref_features = {}
@@ -48,11 +50,11 @@ for col in cols_to_shift:
                                                                         shift_rolling_window)
 
 model_types = ['gbt', 'rf', 'et']  # , 'bridge', 'elastic_net' , 'knn']
-targets = ['new_cases', 'nouveaux_patients_hospitalises', 'nouveaux_patients_reanimation', 'new_deaths']
+targets = ['new_cases', 'hosp_patients', 'icu_patients', 'new_deaths']
 
 target_feature_selection_method_dict = {'new_cases': 'permutation_importance',
-                                        'nouveaux_patients_hospitalises': 'permutation_importance',
-                                        'nouveaux_patients_reanimation': 'permutation_importance',
+                                        'hosp_patients': 'permutation_importance',
+                                        'icu_patients': 'permutation_importance',
                                         'new_deaths': 'permutation_importance'}
 
 ref_models = {'rf': 'Random Forest',
