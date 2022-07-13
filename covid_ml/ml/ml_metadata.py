@@ -1,6 +1,6 @@
 cols_to_shift = ['prop_cases_vs_tests',
                  'new_cases',
-                 'new_tests',
+                 # 'new_tests',
                  'icu_patients',
                  'hosp_patients',
                  'reproduction_rate',
