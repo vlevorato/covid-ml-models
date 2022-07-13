@@ -11,15 +11,15 @@ def generate_data_viz_query(template_query, joining_field='date',
         from_table = '`{2}.predictions_last` as predictions_last'
         if target == 'hosp_patients':
             from_table = '(SELECT date, model, target, date_export, ' \
-                         'IF(target="nouveaux_patients_hospitalises", y_pred * 10, y_pred) as y_pred' \
-                         ' FROM `{2}.predictions_last`) as predictions_last'
+                         "IF(target='nouveaux_patients_hospitalises', y_pred * 10, y_pred) as y_pred" \
+                         ' FROM `{0}.predictions_last`) as predictions_last'.format(bq_dataset)
         pre_query += ' predictions_data_{0} AS ' \
                      '( SELECT ' \
                      '{1}, ' \
                      'CAST(AVG(y_pred) AS INT64) as {0}_pred ' \
-                     'FROM ' + from_table + ' ' \
-                     "WHERE target in ({3}) " \
-                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, bq_dataset, fields)
+                     'FROM {3} ' \
+                     "WHERE target in ({2}) " \
+                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, fields, from_table)
 
     pre_query = pre_query[:-1]
 
