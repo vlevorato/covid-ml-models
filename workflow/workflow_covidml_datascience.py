@@ -31,7 +31,7 @@ split_date_for_train_predict = None
 Data prep
 """
 
-data_files_to_prepare = ['owid_data', 'datagov_data', 'datagov_tests_data', 'datagov_kpis_data']
+data_files_to_prepare = ['owid_data']  # , 'datagov_data', 'datagov_tests_data', 'datagov_kpis_data']
 
 task_group_prepare_data = TaskGroup("Prepare_data", dag=dag)
 
@@ -128,7 +128,7 @@ for target in targets:
                                                         pandas_write_function_name='to_csv', index=False)
 
     input_model_selection_unit = DataInputFileUnit(config_variables['COVIDML_MODEL_PATH']
-                                                     + 'model_type_{}.csv'.format(target))
+                                                   + 'model_type_{}.csv'.format(target))
 
     task_feature_selection = DataOperator(operation_function=feature_selection,
                                           params={'split_date': split_date_feature_selection_test,

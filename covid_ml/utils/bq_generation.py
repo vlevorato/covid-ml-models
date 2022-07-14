@@ -4,14 +4,26 @@ import pandas as pd
 def generate_data_viz_query(template_query, joining_field='date',
                             bq_dataset=None, targets=None):
     pre_query = 'WITH'
-    for target in targets:
+    for target, fields in targets.items():
+        fields = str(fields)
+        fields = fields.replace('[', '')
+        fields = fields.replace(']', '')
+        from_table = '`{}.predictions_last` as predictions_last'.format(bq_dataset)
+        if target == 'hosp_patients':
+            from_table = '(SELECT date, model, target, date_export, ' \
+                         "IF(target='nouveaux_patients_hospitalises', y_pred * 10, y_pred) as y_pred" \
+                         ' FROM `{0}.predictions_last`) as predictions_last'.format(bq_dataset)
+        if target == 'icu_patients':
+            from_table = '(SELECT date, model, target, date_export, ' \
+                         "IF(target='nouveaux_patients_reanimation', y_pred * 10, y_pred) as y_pred" \
+                         ' FROM `{0}.predictions_last`) as predictions_last'.format(bq_dataset)
         pre_query += ' predictions_data_{0} AS ' \
                      '( SELECT ' \
                      '{1}, ' \
                      'CAST(AVG(y_pred) AS INT64) as {0}_pred ' \
-                     'FROM `{2}.predictions_last` as predictions_last ' \
-                     "WHERE target = '{0}' " \
-                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, bq_dataset)
+                     'FROM {3} ' \
+                     "WHERE target in ({2}) " \
+                     "GROUP BY predictions_last.{1} ),".format(target, joining_field, fields, from_table)
 
     pre_query = pre_query[:-1]
 
