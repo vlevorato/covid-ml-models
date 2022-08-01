@@ -1,4 +1,4 @@
-cols_to_shift = ['prop_cases_vs_tests',
+cols_to_shift = [# 'prop_cases_vs_tests',
                  'new_cases',
                  # 'new_tests',
                  'icu_patients',
