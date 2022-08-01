@@ -48,8 +48,10 @@ def prepare_data(dataframe, data_file=None, date_col='date'):
 
             dataframe[col] = dataframe[col].replace(0, np.nan)
 
-    dataframe = dataframe.interpolate(limit_area='inside')
-    dataframe = dataframe.backfill()
+    columns_to_process = list(dataframe.columns)
+    columns_to_process.remove('date')
+    dataframe[columns_to_process] = dataframe[columns_to_process].interpolate(limit_area='inside')
+    dataframe[columns_to_process] = dataframe[columns_to_process].backfill()
 
     return dataframe
 
